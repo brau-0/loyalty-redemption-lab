@@ -1,4 +1,7 @@
 <Solution>
+  <Folder Name="/tests/">
+    <Project Path="tests/Redemption.Domain.Tests/Redemption.Domain.Tests.csproj" />
+  </Folder>
   <Project Path="src/LoyaltyLab.AppHost/LoyaltyLab.AppHost.csproj" />
   <Project Path="src/LoyaltyLab.ServiceDefaults/LoyaltyLab.ServiceDefaults.csproj" />
   <Project Path="src/Mocks.Customers/Mocks.Customers.csproj" />
