@@ -1,0 +1,6 @@
+@Redemption.Api_HostAddress = http://localhost:5030
+
+GET {{Redemption.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

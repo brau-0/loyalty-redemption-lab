@@ -1,0 +1,11 @@
+<Solution>
+  <Project Path="src/LoyaltyLab.AppHost/LoyaltyLab.AppHost.csproj" />
+  <Project Path="src/LoyaltyLab.ServiceDefaults/LoyaltyLab.ServiceDefaults.csproj" />
+  <Project Path="src/Mocks.Customers/Mocks.Customers.csproj" />
+  <Project Path="src/Mocks.Delivery/Mocks.Delivery.csproj" />
+  <Project Path="src/Mocks.Points/Mocks.Points.csproj" />
+  <Project Path="src/Redemption.Api/Redemption.Api.csproj" />
+  <Project Path="src/Redemption.Domain/Redemption.Domain.csproj" />
+  <Project Path="src/Redemption.Infrastructure/Redemption.Infrastructure.csproj" />
+  <Project Path="src/Redemption.Worker/Redemption.Worker.csproj" />
+</Solution>
