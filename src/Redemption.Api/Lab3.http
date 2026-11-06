@@ -1,0 +1,87 @@
+@api = https://localhost:7119
+@points = https://localhost:7085
+
+### ===== Scenario A: happy path, real provider =====
+### Balance before: C-100 = 10000
+GET {{points}}/accounts/C-100
+
+### Create (2000 points)
+# @name a
+POST {{api}}/redemptions
+Content-Type: application/json
+
+{ "customerId": "C-100", "lines": [ { "rewardSku": "CAP-01", "quantity": 2 }, { "rewardSku": "BOTTLE-01", "quantity": 1 } ] }
+
+###
+POST {{api}}/dev/redemptions/{{a.response.body.$.id}}/delivery-status
+Content-Type: application/json
+
+{ "status": "Pending" }
+
+###
+POST {{api}}/dev/redemptions/{{a.response.body.$.id}}/delivery-status
+Content-Type: application/json
+
+{ "status": "Held" }
+
+### Wait 2-3 s, then on delivery
+POST {{api}}/dev/redemptions/{{a.response.body.$.id}}/delivery-status
+Content-Type: application/json
+
+{ "status": "OnDelivery" }
+
+###
+POST {{api}}/dev/redemptions/{{a.response.body.$.id}}/delivery-status
+Content-Type: application/json
+
+{ "status": "CompletedPartially", "delivered": [ { "rewardSku": "CAP-01", "deliveredQuantity": 2 }, { "rewardSku": "BOTTLE-01", "deliveredQuantity": 0 } ] }
+
+### Wait 2-3 s. Balance after: 9000 (one deduction of 2000, one reversal of 1000)
+GET {{points}}/accounts/C-100
+
+### ===== Scenario B: insufficient balance (C-200 has 1000) =====
+# @name b
+POST {{api}}/redemptions
+Content-Type: application/json
+
+{ "customerId": "C-200", "lines": [ { "rewardSku": "CAP-01", "quantity": 2 }, { "rewardSku": "BOTTLE-01", "quantity": 1 } ] }
+
+###
+POST {{api}}/dev/redemptions/{{b.response.body.$.id}}/delivery-status
+Content-Type: application/json
+
+{ "status": "Pending" }
+
+###
+POST {{api}}/dev/redemptions/{{b.response.body.$.id}}/delivery-status
+Content-Type: application/json
+
+{ "status": "Held" }
+
+### Wait 2-3 s: Cancelled, rejectionReason INSUFFICIENT_BALANCE
+GET {{api}}/redemptions/{{b.response.body.$.id}}
+
+### ===== Scenario C: lost responses (the provider deducts but answers 503) =====
+POST {{points}}/admin/chaos
+Content-Type: application/json
+
+{ "failureRate": 0, "lostResponseRate": 0.7, "latencyMs": 100 }
+
+### Now repeat Scenario A with a NEW redemption, then check:
+### exactly ONE deduction per redemption in the transactions list
+GET {{points}}/accounts/C-100
+
+### ===== Scenario D: provider completely down =====
+POST {{points}}/admin/chaos
+Content-Type: application/json
+
+{ "failureRate": 1.0, "lostResponseRate": 0, "latencyMs": 100 }
+
+### Create a new redemption and send Pending + Held. Wait ~1 minute, then:
+GET {{api}}/dev/dead-letters?subscription=points-adapter
+
+### Restore normal behavior
+POST {{points}}/admin/chaos
+Content-Type: application/json
+
+{ "failureRate": 0, "lostResponseRate": 0, "latencyMs": 100 }

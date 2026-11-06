@@ -16,3 +16,5 @@ public sealed record ReservationReleased(Guid RedemptionId, string CustomerId, i
 public sealed record PointsReversalRequested(Guid RedemptionId, string CustomerId, int Points, bool IsPartial, DateTimeOffset OccurredAt) : IDomainEvent;
 
 public sealed record RedemptionFinished(Guid RedemptionId, RedemptionStatus FinalStatus, DateTimeOffset OccurredAt) : IDomainEvent;
+
+public sealed record DeliveryCancellationRequested(Guid RedemptionId, string Reason, DateTimeOffset OccurredAt) : IDomainEvent;

@@ -14,6 +14,7 @@ public sealed record DeliveryStatusChanged(
     Guid RedemptionId, DeliveryStatus Status, List<DeliveredLine>? Delivered, DateTimeOffset OccurredAt);
 public sealed record PointsCommitConfirmed(Guid RedemptionId, DateTimeOffset OccurredAt);
 public sealed record PointsReversalConfirmed(Guid RedemptionId, DateTimeOffset OccurredAt);
+public sealed record PointsCommitRejected(Guid RedemptionId, string Reason, DateTimeOffset OccurredAt);
 
 public static class MessageFactory
 {

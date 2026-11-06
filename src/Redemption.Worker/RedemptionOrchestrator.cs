@@ -114,6 +114,9 @@ public sealed class RedemptionOrchestrator(
                 return order.ConfirmPointsCommitted(Read<PointsCommitConfirmed>(message).OccurredAt);
             case nameof(PointsReversalConfirmed):
                 return order.ConfirmReversal(Read<PointsReversalConfirmed>(message).OccurredAt);
+            case nameof(PointsCommitRejected):
+                var rejection = Read<PointsCommitRejected>(message);
+                return order.RejectPointsCommit(rejection.Reason, rejection.OccurredAt);
             default:
                 throw new NotSupportedException($"Unsupported subject '{message.Subject}'.");
         }

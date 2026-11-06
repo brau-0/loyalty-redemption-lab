@@ -17,6 +17,7 @@ redemptionEvents.AddServiceBusSubscription("orchestrator")
         s.RequiresSession = true;   // Ordering per redemption.
         s.MaxDeliveryCount = 5;     // Then dead-letter.
         AddSubjects(s, "DeliveryStatusChanged", "PointsCommitConfirmed", "PointsReversalConfirmed");
+        AddSubjects(s, "DeliveryStatusChanged", "PointsCommitConfirmed", "PointsCommitRejected", "PointsReversalConfirmed");
     });
 
 redemptionEvents.AddServiceBusSubscription("points-adapter")
@@ -25,6 +26,8 @@ redemptionEvents.AddServiceBusSubscription("points-adapter")
         s.MaxDeliveryCount = 5;
         AddSubjects(s, "PointsCommitRequested", "PointsReversalRequested");
     });
+
+
 
 redemptionEvents.AddServiceBusSubscription("notifications")
     .WithProperties(s => AddSubjects(s, "RedemptionFinished"));

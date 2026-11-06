@@ -21,9 +21,9 @@ public static class DeliverySimulatorEndpoints
         });
 
         // Peeks the orchestrator's dead-letter queue (the emulator has no portal).
-        app.MapGet("/dev/dead-letters", async (ServiceBusClient client, CancellationToken ct) =>
+        app.MapGet("/dev/dead-letters", async (string? subscription, ServiceBusClient client, CancellationToken ct) =>
         {
-            await using var receiver = client.CreateReceiver(Topics.RedemptionEvents, "orchestrator",
+            await using var receiver = client.CreateReceiver(Topics.RedemptionEvents, subscription ?? "orchestrator",
                 new ServiceBusReceiverOptions { SubQueue = SubQueue.DeadLetter });
             var messages = await receiver.PeekMessagesAsync(maxMessages: 50, cancellationToken: ct);
             return Results.Ok(messages.Select(m => new
@@ -36,5 +36,7 @@ public static class DeliverySimulatorEndpoints
                 Body = m.Body.ToString()
             }));
         });
+
+
     }
 }

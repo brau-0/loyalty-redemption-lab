@@ -163,4 +163,29 @@ public class RedemptionOrderTests
         Assert.Equal(6, order.History.Count);
         Assert.Equal(RedemptionStatus.Completed, order.History[^1].To);
     }
+    [Fact]
+    public void Rejected_commit_cancels_and_requests_delivery_cancellation()
+    {
+        var order = NewOrder();
+        order.ApplyDeliveryStatus(DeliveryStatus.Pending, T0);
+        order.ApplyDeliveryStatus(DeliveryStatus.Held, T0);
+
+        var result = order.RejectPointsCommit("INSUFFICIENT_BALANCE", T0);
+
+        Assert.Equal(TransitionResult.Applied, result);
+        Assert.Equal(RedemptionStatus.Cancelled, order.Status);
+        Assert.Single(order.DomainEvents.OfType<ReservationReleased>());
+        Assert.Single(order.DomainEvents.OfType<DeliveryCancellationRequested>());
+    }
+
+    [Fact]
+    public void Rejection_after_commit_was_confirmed_is_invalid()
+    {
+        var order = OrderInDelivery();
+
+        var result = order.RejectPointsCommit("INSUFFICIENT_BALANCE", T0);
+
+        Assert.Equal(TransitionResult.RejectedInvalid, result);
+        Assert.Equal(RedemptionStatus.InDelivery, order.Status);
+    }
 }

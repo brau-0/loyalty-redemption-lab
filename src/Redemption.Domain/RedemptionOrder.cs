@@ -94,6 +94,20 @@ public sealed class RedemptionOrder
         _ => TransitionResult.RejectedInvalid
     };
 
+    /// <summary>The points provider refused the deduction (e.g. insufficient balance).</summary>
+    public TransitionResult RejectPointsCommit(string reason, DateTimeOffset at)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(reason);
+        if (Status != RedemptionStatus.CommitPending)
+            return Status == RedemptionStatus.Cancelled ? TransitionResult.IgnoredDuplicate : TransitionResult.RejectedInvalid;
+
+        RejectionReason = reason;
+        // Nothing was deducted: releasing the local hold is enough, but the shipment must be stopped.
+        Raise(new ReservationReleased(Id, CustomerId, TotalPoints, at));
+        Raise(new DeliveryCancellationRequested(Id, reason, at));
+        return Finish(RedemptionStatus.Cancelled, $"Points provider rejected deduction: {reason}", at);
+    }
+
     /// <summary>The points provider confirmed a full or partial reversal.</summary>
     public TransitionResult ConfirmReversal(DateTimeOffset at)
     {
