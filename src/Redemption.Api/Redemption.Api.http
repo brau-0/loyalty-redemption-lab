@@ -1,6 +1,62 @@
-@Redemption.Api_HostAddress = http://localhost:5030
+@api = https://localhost:7119
 
-GET {{Redemption.Api_HostAddress}}/weatherforecast/
-Accept: application/json
+### 1. Create a redemption (2 x 500 + 1 x 1000 = 2000 points)
+# @name create
+POST {{api}}/redemptions
+Content-Type: application/json
+
+{ "customerId": "C-100", "lines": [ { "rewardSku": "CAP-01", "quantity": 2 }, { "rewardSku": "BOTTLE-01", "quantity": 1 } ] }
 
 ###
+@id = {{create.response.body.$.id}}
+
+### 2. Delivery pending -> points reserved locally
+POST {{api}}/dev/redemptions/{{id}}/delivery-status
+Content-Type: application/json
+
+{ "status": "Pending" }
+
+### 3. Reserved points should be 2000
+GET {{api}}/customers/C-100/reserved-points
+
+### 4. Same status again -> IgnoredDuplicate
+POST {{api}}/dev/redemptions/{{id}}/delivery-status
+Content-Type: application/json
+
+{ "status": "Pending" }
+
+### 5. Delivery held -> deduction requested
+POST {{api}}/dev/redemptions/{{id}}/delivery-status
+Content-Type: application/json
+
+{ "status": "Held" }
+
+### 6. Provider confirms deduction -> reservation settled
+POST {{api}}/dev/redemptions/{{id}}/points-committed
+
+### 7. Reserved points should be 0 now
+GET {{api}}/customers/C-100/reserved-points
+
+### 8. On delivery
+POST {{api}}/dev/redemptions/{{id}}/delivery-status
+Content-Type: application/json
+
+{ "status": "OnDelivery" }
+
+### 9. Partial delivery: the bottle was not delivered -> reverse 1000 points
+POST {{api}}/dev/redemptions/{{id}}/delivery-status
+Content-Type: application/json
+
+{ "status": "CompletedPartially", "delivered": [ { "rewardSku": "CAP-01", "deliveredQuantity": 2 }, { "rewardSku": "BOTTLE-01", "deliveredQuantity": 0 } ] }
+
+### 10. Provider confirms reversal -> PartiallyCompleted
+POST {{api}}/dev/redemptions/{{id}}/reversal-confirmed
+
+### 11. Full state with history
+GET {{api}}/redemptions/{{id}}
+
+### 12. Invalid transition -> 409 Conflict
+POST {{api}}/dev/redemptions/{{id}}/delivery-status
+Content-Type: application/json
+
+{ "status": "Pending" }
