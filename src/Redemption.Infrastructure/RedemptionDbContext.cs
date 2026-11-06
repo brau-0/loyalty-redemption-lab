@@ -9,6 +9,7 @@ public sealed class RedemptionDbContext(DbContextOptions<RedemptionDbContext> op
     public DbSet<RedemptionOrder> Redemptions => Set<RedemptionOrder>();
     public DbSet<PointsReservation> PointsReservations => Set<PointsReservation>();
     public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
+    public DbSet<InboxMessage> InboxMessages => Set<InboxMessage>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -61,6 +62,15 @@ public sealed class RedemptionDbContext(DbContextOptions<RedemptionDbContext> op
             outbox.Property(m => m.LastError).HasMaxLength(2048);
             // Filtered index: the relay only ever looks for pending messages, in order.
             outbox.HasIndex(m => m.Sequence).HasFilter("[ProcessedAt] IS NULL");
+        });
+
+        modelBuilder.Entity<InboxMessage>(inbox =>
+        {
+            inbox.ToTable("InboxMessages");
+            // Composite key: the same message can be handled once per consumer.
+            inbox.HasKey(i => new { i.MessageId, i.Consumer });
+            inbox.Property(i => i.MessageId).HasMaxLength(128);
+            inbox.Property(i => i.Consumer).HasMaxLength(64);
         });
     }
 

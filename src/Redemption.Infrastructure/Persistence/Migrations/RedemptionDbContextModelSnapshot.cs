@@ -67,6 +67,24 @@ namespace Redemption.Infrastructure.Persistence.Migrations
                     b.ToTable("Redemptions", (string)null);
                 });
 
+            modelBuilder.Entity("Redemption.Infrastructure.InboxMessage", b =>
+                {
+                    b.Property<string>("MessageId")
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<string>("Consumer")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<DateTimeOffset>("ProcessedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.HasKey("MessageId", "Consumer");
+
+                    b.ToTable("InboxMessages", (string)null);
+                });
+
             modelBuilder.Entity("Redemption.Infrastructure.OutboxMessage", b =>
                 {
                     b.Property<Guid>("Id")

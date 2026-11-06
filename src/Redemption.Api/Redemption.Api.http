@@ -1,59 +1,59 @@
 @api = https://localhost:7119
 
-### 1. Create a redemption (2 x 500 + 1 x 1000 = 2000 points)
+### 1. Create a redemption (2000 points)
 # @name create
 POST {{api}}/redemptions
 Content-Type: application/json
 
 { "customerId": "C-100", "lines": [ { "rewardSku": "CAP-01", "quantity": 2 }, { "rewardSku": "BOTTLE-01", "quantity": 1 } ] }
 
-### 2. Delivery pending -> points reserved locally
+### 2. Delivery pending -> PointsReserved
 POST {{api}}/dev/redemptions/{{create.response.body.$.id}}/delivery-status
 Content-Type: application/json
 
 { "status": "Pending" }
 
-### 3. Reserved points should be 2000
+### 3. Reserved points: 2000
 GET {{api}}/customers/C-100/reserved-points
 
-### 4. Same status again -> IgnoredDuplicate
-POST {{api}}/dev/redemptions/{{create.response.body.$.id}}/delivery-status
-Content-Type: application/json
-
-{ "status": "Pending" }
-
-### 5. Delivery held -> deduction requested
+### 4. Delivery held -> CommitPending, then the adapter confirms -> PointsCommitted
 POST {{api}}/dev/redemptions/{{create.response.body.$.id}}/delivery-status
 Content-Type: application/json
 
 { "status": "Held" }
 
-### 6. Provider confirms deduction -> reservation settled
-POST {{api}}/dev/redemptions/{{create.response.body.$.id}}/points-committed
+### 5. Wait 2-3 seconds: status should be PointsCommitted
+GET {{api}}/redemptions/{{create.response.body.$.id}}
 
-### 7. Reserved points should be 0 now
+### 6. Reserved points: 0 (settled)
 GET {{api}}/customers/C-100/reserved-points
 
-### 8. On delivery
+### 7. On delivery
 POST {{api}}/dev/redemptions/{{create.response.body.$.id}}/delivery-status
 Content-Type: application/json
 
 { "status": "OnDelivery" }
 
-### 9. Partial delivery: the bottle was not delivered -> reverse 1000 points
+### 8. Partial delivery -> ReversalPending, then the adapter confirms -> PartiallyCompleted
 POST {{api}}/dev/redemptions/{{create.response.body.$.id}}/delivery-status
 Content-Type: application/json
 
 { "status": "CompletedPartially", "delivered": [ { "rewardSku": "CAP-01", "deliveredQuantity": 2 }, { "rewardSku": "BOTTLE-01", "deliveredQuantity": 0 } ] }
 
-### 10. Provider confirms reversal -> PartiallyCompleted
-POST {{api}}/dev/redemptions/{{create.response.body.$.id}}/reversal-confirmed
-
-### 11. Full state with history
+### 9. Wait 2-3 seconds: status PartiallyCompleted with full history
 GET {{api}}/redemptions/{{create.response.body.$.id}}
 
-### 12. Invalid transition -> 409 Conflict
-POST {{api}}/dev/redemptions/{{create.response.body.$.id}}/delivery-status
+### 10. Idempotency: send the same message twice (same messageId)
+POST {{api}}/dev/redemptions/{{create.response.body.$.id}}/delivery-status?messageId=dup-test-001
 Content-Type: application/json
 
-{ "status": "Pending" }
+{ "status": "Completed" }
+
+### 11. Run this one again with the SAME messageId: the orchestrator logs "Duplicate message ... ignored"
+POST {{api}}/dev/redemptions/{{create.response.body.$.id}}/delivery-status?messageId=dup-test-001
+Content-Type: application/json
+
+{ "status": "Completed" }
+
+### 12. Dead-letter queue: step 10 was invalid (redemption already finished) -> InvalidTransition
+GET {{api}}/dev/dead-letters
