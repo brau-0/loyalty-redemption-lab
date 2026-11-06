@@ -7,11 +7,8 @@ Content-Type: application/json
 
 { "customerId": "C-100", "lines": [ { "rewardSku": "CAP-01", "quantity": 2 }, { "rewardSku": "BOTTLE-01", "quantity": 1 } ] }
 
-###
-@id = {{create.response.body.$.id}}
-
 ### 2. Delivery pending -> points reserved locally
-POST {{api}}/dev/redemptions/{{id}}/delivery-status
+POST {{api}}/dev/redemptions/{{create.response.body.$.id}}/delivery-status
 Content-Type: application/json
 
 { "status": "Pending" }
@@ -20,43 +17,43 @@ Content-Type: application/json
 GET {{api}}/customers/C-100/reserved-points
 
 ### 4. Same status again -> IgnoredDuplicate
-POST {{api}}/dev/redemptions/{{id}}/delivery-status
+POST {{api}}/dev/redemptions/{{create.response.body.$.id}}/delivery-status
 Content-Type: application/json
 
 { "status": "Pending" }
 
 ### 5. Delivery held -> deduction requested
-POST {{api}}/dev/redemptions/{{id}}/delivery-status
+POST {{api}}/dev/redemptions/{{create.response.body.$.id}}/delivery-status
 Content-Type: application/json
 
 { "status": "Held" }
 
 ### 6. Provider confirms deduction -> reservation settled
-POST {{api}}/dev/redemptions/{{id}}/points-committed
+POST {{api}}/dev/redemptions/{{create.response.body.$.id}}/points-committed
 
 ### 7. Reserved points should be 0 now
 GET {{api}}/customers/C-100/reserved-points
 
 ### 8. On delivery
-POST {{api}}/dev/redemptions/{{id}}/delivery-status
+POST {{api}}/dev/redemptions/{{create.response.body.$.id}}/delivery-status
 Content-Type: application/json
 
 { "status": "OnDelivery" }
 
 ### 9. Partial delivery: the bottle was not delivered -> reverse 1000 points
-POST {{api}}/dev/redemptions/{{id}}/delivery-status
+POST {{api}}/dev/redemptions/{{create.response.body.$.id}}/delivery-status
 Content-Type: application/json
 
 { "status": "CompletedPartially", "delivered": [ { "rewardSku": "CAP-01", "deliveredQuantity": 2 }, { "rewardSku": "BOTTLE-01", "deliveredQuantity": 0 } ] }
 
 ### 10. Provider confirms reversal -> PartiallyCompleted
-POST {{api}}/dev/redemptions/{{id}}/reversal-confirmed
+POST {{api}}/dev/redemptions/{{create.response.body.$.id}}/reversal-confirmed
 
 ### 11. Full state with history
-GET {{api}}/redemptions/{{id}}
+GET {{api}}/redemptions/{{create.response.body.$.id}}
 
 ### 12. Invalid transition -> 409 Conflict
-POST {{api}}/dev/redemptions/{{id}}/delivery-status
+POST {{api}}/dev/redemptions/{{create.response.body.$.id}}/delivery-status
 Content-Type: application/json
 
 { "status": "Pending" }

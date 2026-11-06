@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Redemption.Domain;
+using System.Text.Json;
 
 namespace Redemption.Infrastructure;
 
@@ -7,6 +8,7 @@ public sealed class RedemptionDbContext(DbContextOptions<RedemptionDbContext> op
 {
     public DbSet<RedemptionOrder> Redemptions => Set<RedemptionOrder>();
     public DbSet<PointsReservation> PointsReservations => Set<PointsReservation>();
+    public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -49,14 +51,57 @@ public sealed class RedemptionDbContext(DbContextOptions<RedemptionDbContext> op
             reservation.Property(r => r.State).HasConversion<string>().HasMaxLength(16);
             reservation.HasIndex(r => new { r.CustomerId, r.State });
         });
+
+        modelBuilder.Entity<OutboxMessage>(outbox =>
+        {
+            outbox.ToTable("OutboxMessages");
+            outbox.HasKey(m => m.Id);
+            outbox.Property(m => m.Sequence).UseIdentityColumn();
+            outbox.Property(m => m.Type).HasMaxLength(128);
+            outbox.Property(m => m.LastError).HasMaxLength(2048);
+            // Filtered index: the relay only ever looks for pending messages, in order.
+            outbox.HasIndex(m => m.Sequence).HasFilter("[ProcessedAt] IS NULL");
+        });
     }
 
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         await SyncPointsReservationsAsync(cancellationToken);
-        return await base.SaveChangesAsync(cancellationToken);
+
+        // Outbox rows join the same transaction as the order and the ledger.
+        var ordersWithEvents = CaptureDomainEvents();
+        var result = await base.SaveChangesAsync(cancellationToken);
+
+        foreach (var order in ordersWithEvents)
+            order.ClearDomainEvents();
+
+        return result;
     }
 
+    private List<RedemptionOrder> CaptureDomainEvents()
+    {
+        var orders = ChangeTracker.Entries<RedemptionOrder>()
+            .Select(e => e.Entity)
+            .Where(o => o.DomainEvents.Count > 0)
+            .ToList();
+
+        foreach (var order in orders)
+        {
+            foreach (var domainEvent in order.DomainEvents)
+            {
+                OutboxMessages.Add(new OutboxMessage
+                {
+                    Id = Guid.CreateVersion7(),
+                    AggregateId = domainEvent.RedemptionId,
+                    Type = domainEvent.GetType().Name,
+                    Payload = JsonSerializer.Serialize(domainEvent, domainEvent.GetType(), OutboxJson.Options),
+                    OccurredAt = domainEvent.OccurredAt
+                });
+            }
+        }
+
+        return orders;
+    }
     // Keeps the local points ledger consistent with each order, in the same SQL transaction.
     private async Task SyncPointsReservationsAsync(CancellationToken ct)
     {
