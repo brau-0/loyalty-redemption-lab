@@ -19,6 +19,7 @@ public sealed class RedemptionOrchestrator(
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
+        await using var sender = client.CreateSender(Topics.RedemptionEvents);
         await using var processor = client.CreateSessionProcessor(Topics.RedemptionEvents, "orchestrator",
             new ServiceBusSessionProcessorOptions
             {
@@ -27,7 +28,7 @@ public sealed class RedemptionOrchestrator(
                 SessionIdleTimeout = TimeSpan.FromSeconds(5)   // Release idle sessions quickly.
             });
 
-        processor.ProcessMessageAsync += HandleAsync;
+        processor.ProcessMessageAsync += args => HandleAsync(args, sender);
         processor.ProcessErrorAsync += args =>
         {
             logger.LogError(args.Exception, "Orchestrator error ({Source})", args.ErrorSource);
@@ -40,7 +41,7 @@ public sealed class RedemptionOrchestrator(
         await processor.StopProcessingAsync();
     }
 
-    private async Task HandleAsync(ProcessSessionMessageEventArgs args)
+    private async Task HandleAsync(ProcessSessionMessageEventArgs args, ServiceBusSender sender)
     {
         var message = args.Message;
         var ct = args.CancellationToken;
@@ -87,7 +88,11 @@ public sealed class RedemptionOrchestrator(
                 $"{message.Subject} is not valid while the redemption is {order.Status}.", ct);
             return;
         }
-
+        if (result == TransitionResult.NotYetApplicable)
+        {
+            await DeferAsync(args, sender, order.Status, ct);
+            return;
+        }
         // State change, ledger, outbox events and inbox entry commit in a single transaction.
         // Transient failures throw here: the message is abandoned and redelivered.
         db.InboxMessages.Add(new InboxMessage
@@ -101,6 +106,37 @@ public sealed class RedemptionOrchestrator(
 
         logger.LogInformation("{Subject} for {RedemptionId}: {Result}, now {Status}",
             message.Subject, redemptionId, result, order.Status);
+    }
+    private const int MaxDeferrals = 8;
+
+    // Early signals are rescheduled with exponential backoff instead of being dead-lettered.
+    // The copy keeps the same MessageId, so the inbox still guarantees a single application.
+    private async Task DeferAsync(
+        ProcessSessionMessageEventArgs args, ServiceBusSender sender, RedemptionStatus current, CancellationToken ct)
+    {
+        var message = args.Message;
+        var attempt = message.ApplicationProperties.TryGetValue("deferAttempt", out var value)
+            ? Convert.ToInt32(value)
+            : 0;
+
+        if (attempt >= MaxDeferrals)
+        {
+            await args.DeadLetterMessageAsync(message, "NotApplicableTimeout",
+                $"{message.Subject} still not applicable after {attempt} retries while {current}.", ct);
+            return;
+        }
+
+        var retry = new ServiceBusMessage(message)
+        {
+            ScheduledEnqueueTime = clock.GetUtcNow().AddSeconds(Math.Min(Math.Pow(2, attempt), 30))
+        };
+        retry.ApplicationProperties["deferAttempt"] = attempt + 1;
+
+        await sender.SendMessageAsync(retry, ct);
+        await args.CompleteMessageAsync(message, ct);
+
+        logger.LogInformation("{Subject} for {SessionId} not applicable yet while {Status}; retry {Attempt} scheduled",
+            message.Subject, message.SessionId, current, attempt + 1);
     }
 
     private static TransitionResult Apply(RedemptionOrder order, ServiceBusReceivedMessage message)

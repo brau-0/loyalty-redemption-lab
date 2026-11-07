@@ -14,4 +14,6 @@ builder.Services.AddHostedService<OutboxRelay>();
 builder.Services.AddHostedService<AuditConsumer>();
 builder.Services.AddHostedService<RedemptionOrchestrator>();
 builder.Services.AddHostedService<PointsAdapter>();
+builder.Services.AddHttpClient<DeliveryProviderClient>(c => c.BaseAddress = new Uri("https+http://mock-delivery"));
+builder.Services.AddHostedService<DeliveryAdapter>();
 builder.Build().Run();

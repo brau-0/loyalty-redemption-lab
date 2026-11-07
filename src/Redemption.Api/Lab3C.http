@@ -1,0 +1,69 @@
+@api = https://localhost:7119
+@delivery = https://localhost:7252
+@customers = https://localhost:7194
+
+### 1. Available balance for C-100
+GET {{api}}/customers/C-100/balance
+
+### 2. Blocked customer -> 422 CUSTOMER_BLOCKED
+POST {{api}}/redemptions
+Content-Type: application/json
+
+{ "customerId": "C-300", "lines": [ { "rewardSku": "CAP-01", "quantity": 1 } ] }
+
+### 3. Unknown customer -> 422 CUSTOMER_NOT_FOUND
+POST {{api}}/redemptions
+Content-Type: application/json
+
+{ "customerId": "C-999", "lines": [ { "rewardSku": "CAP-01", "quantity": 1 } ] }
+
+### 4. Not enough points (C-200 has 1000) -> 422 INSUFFICIENT_BALANCE, nothing is created
+POST {{api}}/redemptions
+Content-Type: application/json
+
+{ "customerId": "C-200", "lines": [ { "rewardSku": "BOTTLE-01", "quantity": 2 } ] }
+
+### ===== 5. The race: validation is not the guarantee =====
+### Slow delivery steps keep the gap open between creation and reservation
+POST {{delivery}}/admin/settings
+Content-Type: application/json
+
+{ "scenario": "happy", "duplicateRate": 0, "swapRate": 0, "stepDelayMs": 4000 }
+
+### Send these two quickly, one after the other: BOTH pass validation (1000 each, C-200 has 1000)
+# @name first
+POST {{api}}/redemptions
+Content-Type: application/json
+
+{ "customerId": "C-200", "lines": [ { "rewardSku": "BOTTLE-01", "quantity": 1 } ] }
+
+###
+# @name second
+POST {{api}}/redemptions
+Content-Type: application/json
+
+{ "customerId": "C-200", "lines": [ { "rewardSku": "BOTTLE-01", "quantity": 1 } ] }
+
+### Wait ~20 s: one Completed, the other Cancelled with INSUFFICIENT_BALANCE (decided by the provider)
+GET {{api}}/redemptions/{{first.response.body.$.id}}
+
+###
+GET {{api}}/redemptions/{{second.response.body.$.id}}
+
+### ===== 6. Customer service down -> 503 after retries =====
+POST {{customers}}/admin/chaos
+Content-Type: application/json
+
+{ "failureRate": 1.0, "latencyMs": 50 }
+
+###
+POST {{api}}/redemptions
+Content-Type: application/json
+
+{ "customerId": "C-100", "lines": [ { "rewardSku": "CAP-01", "quantity": 1 } ] }
+
+### Restore
+POST {{customers}}/admin/chaos
+Content-Type: application/json
+
+{ "failureRate": 0, "latencyMs": 50 }

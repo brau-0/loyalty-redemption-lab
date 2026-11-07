@@ -34,25 +34,35 @@ redemptionEvents.AddServiceBusSubscription("notifications")
 
 // No filter: receives every event, used as an audit trail.
 redemptionEvents.AddServiceBusSubscription("audit");
+redemptionEvents.AddServiceBusSubscription("delivery-adapter")
+    .WithProperties(s =>
+    {
+        s.MaxDeliveryCount = 5;
+        AddSubjects(s, "RedemptionRequested", "DeliveryCancellationRequested");
+    });
 
 // Simulated external systems
+// Simulated external systems and redemption platform
 var customers = builder.AddProject<Projects.Mocks_Customers>("mock-customers");
 var points = builder.AddProject<Projects.Mocks_Points>("mock-points");
-var delivery = builder.AddProject<Projects.Mocks_Delivery>("mock-delivery");
 
-// Redemption platform
 var api = builder.AddProject<Projects.Redemption_Api>("redemption-api")
     .WithReference(redemptionDb).WaitFor(redemptionDb)
     .WithReference(cache)
     .WithReference(messaging).WaitFor(messaging)
-    .WithReference(customers);
+    .WithReference(customers)
+    .WithReference(points);
+
+// The delivery provider posts webhooks to the API.
+var delivery = builder.AddProject<Projects.Mocks_Delivery>("mock-delivery")
+    .WithReference(api);
 
 builder.AddProject<Projects.Redemption_Worker>("redemption-worker")
     .WithReference(redemptionDb).WaitFor(redemptionDb)
     .WithReference(messaging).WaitFor(messaging)
     .WithReference(points)
     .WithReference(delivery)
-    .WaitFor(api); // The API applies migrations in development before the relay starts.
+    .WaitFor(api);// The API applies migrations in development before the relay starts.
 
 builder.Build().Run();
 

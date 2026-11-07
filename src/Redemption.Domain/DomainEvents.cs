@@ -18,3 +18,5 @@ public sealed record PointsReversalRequested(Guid RedemptionId, string CustomerI
 public sealed record RedemptionFinished(Guid RedemptionId, RedemptionStatus FinalStatus, DateTimeOffset OccurredAt) : IDomainEvent;
 
 public sealed record DeliveryCancellationRequested(Guid RedemptionId, string Reason, DateTimeOffset OccurredAt) : IDomainEvent;
+
+public sealed record RedemptionRequested(Guid RedemptionId, string CustomerId, IReadOnlyList<RedemptionLine> Lines, DateTimeOffset OccurredAt) : IDomainEvent;

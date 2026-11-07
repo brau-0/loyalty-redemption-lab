@@ -45,16 +45,26 @@ public sealed class RedemptionOrder
         };
         order._lines.AddRange(items);
         order._history.Add(new StatusChange(null, RedemptionStatus.Created, "Created", now));
+        order.Raise(new RedemptionRequested(id, customerId, items, now));
         return order;
     }
 
     /// <summary>Applies a delivery status change reported by the delivery provider.</summary>
+    /// <summary>Applies a delivery status change reported by the delivery provider.</summary>
     public TransitionResult ApplyDeliveryStatus(
         DeliveryStatus delivery, DateTimeOffset at, IReadOnlyCollection<DeliveredLine>? delivered = null)
     {
-        // Providers may resend the same status: treat it as a safe no-op.
+        // Providers may resend the same status: safe no-op.
         if (delivery == LastDeliveryStatus)
             return TransitionResult.IgnoredDuplicate;
+
+        // An older status arriving late is old news: the redemption already moved past it.
+        if (LastDeliveryStatus is { } last && Rank(delivery) < Rank(last))
+            return TransitionResult.IgnoredDuplicate;
+
+        // A different signal after the redemption finished is a conflict to investigate.
+        if (IsFinal(Status))
+            return TransitionResult.RejectedInvalid;
 
         var result = (Status, delivery) switch
         {
@@ -74,7 +84,8 @@ public sealed class RedemptionOrder
             (RedemptionStatus.CommitPending or RedemptionStatus.PointsCommitted or RedemptionStatus.InDelivery,
                 DeliveryStatus.NotCompleted) => RequestFullReversal(at),
 
-            _ => TransitionResult.RejectedInvalid
+            // No valid transition yet: the signal arrived ahead of its predecessor.
+            _ => TransitionResult.NotYetApplicable
         };
 
         if (result == TransitionResult.Applied)
@@ -82,6 +93,18 @@ public sealed class RedemptionOrder
 
         return result;
     }
+
+    private static int Rank(DeliveryStatus status) => status switch
+    {
+        DeliveryStatus.Pending => 1,
+        DeliveryStatus.Held => 2,
+        DeliveryStatus.OnDelivery => 3,
+        _ => 4 // Final outcomes.
+    };
+
+    private static bool IsFinal(RedemptionStatus status) =>
+        status is RedemptionStatus.Completed or RedemptionStatus.PartiallyCompleted
+            or RedemptionStatus.Cancelled or RedemptionStatus.Rejected;
 
     /// <summary>The points provider confirmed the deduction.</summary>
     public TransitionResult ConfirmPointsCommitted(DateTimeOffset at) => Status switch

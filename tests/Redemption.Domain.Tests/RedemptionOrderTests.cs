@@ -45,9 +45,13 @@ public class RedemptionOrderTests
         Assert.Equal(TransitionResult.Applied, result);
         Assert.Equal(RedemptionStatus.Completed, order.Status);
         Assert.Collection(order.DomainEvents,
-            e => Assert.IsType<PointsReserved>(e),
-            e => Assert.IsType<PointsCommitRequested>(e),
-            e => Assert.IsType<RedemptionFinished>(e));
+      e => Assert.IsType<RedemptionRequested>(e),
+      e => Assert.IsType<PointsReserved>(e),
+      e => Assert.IsType<PointsCommitRequested>(e),
+      e => Assert.IsType<RedemptionFinished>(e));
+
+
+
     }
 
     [Fact]
@@ -63,14 +67,65 @@ public class RedemptionOrderTests
     }
 
     [Fact]
-    public void Invalid_transition_is_rejected_and_state_is_unchanged()
+    public void Status_arriving_early_is_not_yet_applicable()
     {
         var order = NewOrder();
 
+        var result = order.ApplyDeliveryStatus(DeliveryStatus.Held, T0);
+
+        Assert.Equal(TransitionResult.NotYetApplicable, result);
+        Assert.Equal(RedemptionStatus.Created, order.Status);
+    }
+
+    [Fact]
+    public void Out_of_order_status_applies_once_its_predecessor_arrives()
+    {
+        var order = NewOrder();
+
+        var early = order.ApplyDeliveryStatus(DeliveryStatus.Held, T0);
+        order.ApplyDeliveryStatus(DeliveryStatus.Pending, T0);
+        var retried = order.ApplyDeliveryStatus(DeliveryStatus.Held, T0);
+
+        Assert.Equal(TransitionResult.NotYetApplicable, early);
+        Assert.Equal(TransitionResult.Applied, retried);
+        Assert.Equal(RedemptionStatus.CommitPending, order.Status);
+    }
+
+    [Fact]
+    public void Stale_status_is_ignored()
+    {
+        var order = NewOrder();
+        order.ApplyDeliveryStatus(DeliveryStatus.Pending, T0);
+        order.ApplyDeliveryStatus(DeliveryStatus.Held, T0);
+
+        var result = order.ApplyDeliveryStatus(DeliveryStatus.Pending, T0);
+
+        Assert.Equal(TransitionResult.IgnoredDuplicate, result);
+        Assert.Equal(RedemptionStatus.CommitPending, order.Status);
+    }
+
+    [Fact]
+    public void On_delivery_before_points_confirmation_is_not_yet_applicable()
+    {
+        var order = NewOrder();
+        order.ApplyDeliveryStatus(DeliveryStatus.Pending, T0);
+        order.ApplyDeliveryStatus(DeliveryStatus.Held, T0);
+
         var result = order.ApplyDeliveryStatus(DeliveryStatus.OnDelivery, T0);
 
+        Assert.Equal(TransitionResult.NotYetApplicable, result);
+    }
+
+    [Fact]
+    public void Conflicting_final_status_is_rejected()
+    {
+        var order = OrderInDelivery();
+        order.ApplyDeliveryStatus(DeliveryStatus.Completed, T0);
+
+        var result = order.ApplyDeliveryStatus(DeliveryStatus.NotCompleted, T0);
+
         Assert.Equal(TransitionResult.RejectedInvalid, result);
-        Assert.Equal(RedemptionStatus.Created, order.Status);
+        Assert.Equal(RedemptionStatus.Completed, order.Status);
     }
 
     [Fact]

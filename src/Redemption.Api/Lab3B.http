@@ -1,0 +1,102 @@
+@api = https://localhost:7119
+@points = https://localhost:7085
+@delivery = https://localhost:7252
+
+### ===== 1. Happy path, fully automatic =====
+POST {{delivery}}/admin/settings
+Content-Type: application/json
+
+{ "scenario": "happy", "duplicateRate": 0, "swapRate": 0, "stepDelayMs": 1500 }
+
+###
+# @name happy
+POST {{api}}/redemptions
+Content-Type: application/json
+
+{ "customerId": "C-100", "lines": [ { "rewardSku": "CAP-01", "quantity": 2 }, { "rewardSku": "BOTTLE-01", "quantity": 1 } ] }
+
+### Wait ~8 s: Completed, with the full history
+GET {{api}}/redemptions/{{happy.response.body.$.id}}
+
+### ===== 2. Partial delivery: only the first item arrives =====
+POST {{delivery}}/admin/settings
+Content-Type: application/json
+
+{ "scenario": "partial", "duplicateRate": 0, "swapRate": 0, "stepDelayMs": 1500 }
+
+###
+# @name partial
+POST {{api}}/redemptions
+Content-Type: application/json
+
+{ "customerId": "C-100", "lines": [ { "rewardSku": "CAP-01", "quantity": 2 }, { "rewardSku": "BOTTLE-01", "quantity": 1 } ] }
+
+### Wait ~8 s: PartiallyCompleted, 1000 points reversed
+GET {{api}}/redemptions/{{partial.response.body.$.id}}
+
+### ===== 3. Not completed before hold: nothing touches the points provider =====
+POST {{delivery}}/admin/settings
+Content-Type: application/json
+
+{ "scenario": "notCompletedBeforeHold", "duplicateRate": 0, "swapRate": 0, "stepDelayMs": 1500 }
+
+###
+# @name early
+POST {{api}}/redemptions
+Content-Type: application/json
+
+{ "customerId": "C-100", "lines": [ { "rewardSku": "CAP-01", "quantity": 1 } ] }
+
+### Wait ~4 s: Cancelled, reservation released
+GET {{api}}/redemptions/{{early.response.body.$.id}}
+
+### ===== 4. Insufficient balance: the shipment gets cancelled =====
+### Slow steps so the cancellation arrives before the goods leave the warehouse
+POST {{delivery}}/admin/settings
+Content-Type: application/json
+
+{ "scenario": "happy", "duplicateRate": 0, "swapRate": 0, "stepDelayMs": 5000 }
+
+###
+# @name poor
+POST {{api}}/redemptions
+Content-Type: application/json
+
+{ "customerId": "C-200", "lines": [ { "rewardSku": "CAP-01", "quantity": 2 }, { "rewardSku": "BOTTLE-01", "quantity": 1 } ] }
+
+### Wait ~15 s: redemption Cancelled, shipment cancelled (no "ondelivery" sent)
+GET {{api}}/redemptions/{{poor.response.body.$.id}}
+
+###
+GET {{delivery}}/shipments/{{poor.response.body.$.id}}
+
+### ===== 5. Chaos: duplicates and out-of-order webhooks =====
+POST {{delivery}}/admin/settings
+Content-Type: application/json
+
+{ "scenario": "happy", "duplicateRate": 0.5, "swapRate": 0.7, "stepDelayMs": 1000 }
+
+### Send this one 3-4 times, wait ~20 s, then check each redemption: all Completed
+POST {{api}}/redemptions
+Content-Type: application/json
+
+{ "customerId": "C-100", "lines": [ { "rewardSku": "CAP-01", "quantity": 1 } ] }
+
+### The orchestrator's dead-letter queue should stay empty
+GET {{api}}/dev/dead-letters
+
+### ===== Bonus: cancellation too late =====
+### Fast steps: the goods leave before the cancellation arrives -> CancellationTooLate
+POST {{delivery}}/admin/settings
+Content-Type: application/json
+
+{ "scenario": "happy", "duplicateRate": 0, "swapRate": 0, "stepDelayMs": 200 }
+
+###
+POST {{api}}/redemptions
+Content-Type: application/json
+
+{ "customerId": "C-200", "lines": [ { "rewardSku": "CAP-01", "quantity": 2 }, { "rewardSku": "BOTTLE-01", "quantity": 1 } ] }
+
+### Wait ~5 s
+GET {{api}}/dev/dead-letters?subscription=delivery-adapter

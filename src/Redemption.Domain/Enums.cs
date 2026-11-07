@@ -33,6 +33,7 @@ public enum DeliveryStatus
 public enum TransitionResult
 {
     Applied,
-    IgnoredDuplicate,   // Same signal received again: safe no-op (idempotency).
-    RejectedInvalid     // Signal not valid for the current state: must be investigated.
+    IgnoredDuplicate,   // Same or older signal: safe no-op (idempotency, stale events).
+    NotYetApplicable,   // Signal arrived ahead of its predecessor: retry later.
+    RejectedInvalid     // Conflicting or malformed signal: must be investigated.
 }
