@@ -24,7 +24,7 @@ public sealed class RedemptionDbContext(DbContextOptions<RedemptionDbContext> op
             order.Property(o => o.StatusAfterReversal).HasConversion<string>().HasMaxLength(32);
             order.Property(o => o.RejectionReason).HasMaxLength(256);
             order.HasIndex(o => new { o.CustomerId, o.Status });
-
+            order.HasIndex(o => new { o.Status, o.UpdatedAt });
             // Optimistic concurrency without leaking persistence concerns into the domain.
             order.Property<byte[]>("RowVersion").IsRowVersion();
 

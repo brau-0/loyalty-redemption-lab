@@ -37,3 +37,15 @@ public enum TransitionResult
     NotYetApplicable,   // Signal arrived ahead of its predecessor: retry later.
     RejectedInvalid     // Conflicting or malformed signal: must be investigated.
 }
+
+public static class DeliveryStatusOrder
+{
+    /// <summary>Progression rank: older statuses rank lower; final outcomes share the highest rank.</summary>
+    public static int Rank(DeliveryStatus status) => status switch
+    {
+        DeliveryStatus.Pending => 1,
+        DeliveryStatus.Held => 2,
+        DeliveryStatus.OnDelivery => 3,
+        _ => 4
+    };
+}

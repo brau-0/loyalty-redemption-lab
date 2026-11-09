@@ -24,7 +24,9 @@ app.MapPost("/shipments", (ShipmentRequest request, ShipmentStore store, Shipmen
 app.MapPost("/shipments/{reference}/cancel", (string reference, ShipmentStore store) => store.Cancel(reference));
 
 app.MapGet("/shipments/{reference}", (string reference, ShipmentStore store) =>
-    store.Get(reference) is { } s ? Results.Ok(new { reference, s.Cancelled, sent = s.Sent }) : Results.NotFound());
+    store.Get(reference) is { } s
+        ? Results.Ok(new { reference, cancelled = s.Cancelled, statuses = s.Sent, deliveredItems = s.DeliveredItems })
+        : Results.NotFound());
 
 // Scenario and chaos for shipments created from now on.
 app.MapGet("/admin/settings", (ScenarioSettingsHolder holder) => holder.Current);
@@ -41,9 +43,10 @@ sealed record ShipmentItem(string Sku, int Quantity);
 sealed record DeliveredItem(string Sku, int Quantity);
 sealed record WebhookEvent(string EventId, string Reference, string Status, List<DeliveredItem>? DeliveredItems, DateTimeOffset OccurredAt);
 
-/// <summary>Scenario: happy, partial, notCompletedBeforeHold, notCompletedAfterHold.</summary>
-sealed record ScenarioSettings(string Scenario = "happy", double DuplicateRate = 0, double SwapRate = 0, int StepDelayMs = 1500);
 
+/// <summary>Scenario: happy, partial, notCompletedBeforeHold, notCompletedAfterHold.</summary>
+sealed record ScenarioSettings(
+    string Scenario = "happy", double DuplicateRate = 0, double SwapRate = 0, double DropRate = 0, int StepDelayMs = 1500);
 sealed class ScenarioSettingsHolder
 {
     public ScenarioSettings Current { get; set; } = new();
@@ -53,6 +56,7 @@ sealed class Shipment(ShipmentRequest request)
 {
     public ShipmentRequest Request { get; } = request;
     public HashSet<string> Sent { get; } = new();
+    public List<DeliveredItem>? DeliveredItems { get; set; }
     public bool Cancelled { get; set; }
 }
 
@@ -95,13 +99,16 @@ sealed class ShipmentStore
     }
 
     /// <summary>Records a status about to be sent. Returns false if the shipment was cancelled.</summary>
-    public bool TryAdvance(Shipment shipment, string status)
+    /// <summary>Records a status the provider reached. Returns false if the shipment was cancelled.</summary>
+    public bool TryAdvance(Shipment shipment, WebhookEvent webhook)
     {
         lock (_gate)
         {
             if (shipment.Cancelled)
                 return false;
-            shipment.Sent.Add(status);
+            shipment.Sent.Add(webhook.Status);
+            if (webhook.DeliveredItems is not null)
+                shipment.DeliveredItems = webhook.DeliveredItems;
             return true;
         }
     }
@@ -119,7 +126,7 @@ sealed class ShipmentLifecycle(
     {
         var current = settings.Current;
         var plan = BuildPlan(shipment.Request, current);
-        _ = Task.Run(() => RunAsync(shipment, plan, current.StepDelayMs, lifetime.ApplicationStopping));
+        _ = Task.Run(() => RunAsync(shipment, plan, current.StepDelayMs, current.DropRate,lifetime.ApplicationStopping));
     }
 
     private static List<WebhookEvent> BuildPlan(ShipmentRequest request, ScenarioSettings s)
@@ -157,20 +164,25 @@ sealed class ShipmentLifecycle(
         return events;
     }
 
-    private async Task RunAsync(Shipment shipment, List<WebhookEvent> plan, int stepDelayMs, CancellationToken ct)
+    private async Task RunAsync(Shipment shipment, List<WebhookEvent> plan, int stepDelayMs, double dropRate, CancellationToken ct)
     {
         var http = httpFactory.CreateClient("webhooks");
 
         foreach (var webhook in plan)
         {
             await Task.Delay(stepDelayMs, ct);
-
-            if (!store.TryAdvance(shipment, webhook.Status))
+            if (!store.TryAdvance(shipment, webhook))
             {
                 logger.LogInformation("Shipment {Reference} cancelled; lifecycle stopped", shipment.Request.Reference);
                 return;
             }
 
+            // Lost webhook: the provider reached this status but the notification never left.
+            if (Random.Shared.NextDouble() <dropRate)
+            {
+                logger.LogWarning("Webhook {Status} for {Reference} DROPPED", webhook.Status, shipment.Request.Reference);
+                continue;
+            }
             var payload = webhook with { OccurredAt = DateTimeOffset.UtcNow };
             try
             {

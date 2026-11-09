@@ -7,6 +7,7 @@
     <Project Path="src/Mocks.Points/Mocks.Points.csproj" />
     <Project Path="src/Redemption.Api/Redemption.Api.csproj" />
     <Project Path="src/Redemption.Domain/Redemption.Domain.csproj" />
+    <Project Path="src/Redemption.Functions/Redemption.Functions.csproj" />
     <Project Path="src/Redemption.Infrastructure/Redemption.Infrastructure.csproj" />
     <Project Path="src/Redemption.Worker/Redemption.Worker.csproj" />
   </Folder>

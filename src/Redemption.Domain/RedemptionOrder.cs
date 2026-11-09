@@ -22,6 +22,7 @@ public sealed class RedemptionOrder
     public IReadOnlyList<RedemptionLine> Lines => _lines;
     public IReadOnlyList<StatusChange> History => _history;
     public IReadOnlyList<IDomainEvent> DomainEvents => _events;
+    public DateTimeOffset UpdatedAt { get; private set; }
 
     private RedemptionOrder() { } // Required by EF Core.
 
@@ -41,7 +42,8 @@ public sealed class RedemptionOrder
             Id = id,
             CustomerId = customerId,
             Status = RedemptionStatus.Created,
-            TotalPoints = items.Sum(l => l.TotalPoints)
+            TotalPoints = items.Sum(l => l.TotalPoints),
+            UpdatedAt = now
         };
         order._lines.AddRange(items);
         order._history.Add(new StatusChange(null, RedemptionStatus.Created, "Created", now));
@@ -59,7 +61,7 @@ public sealed class RedemptionOrder
             return TransitionResult.IgnoredDuplicate;
 
         // An older status arriving late is old news: the redemption already moved past it.
-        if (LastDeliveryStatus is { } last && Rank(delivery) < Rank(last))
+        if (LastDeliveryStatus is { } last && DeliveryStatusOrder.Rank(delivery) < DeliveryStatusOrder.Rank(last))
             return TransitionResult.IgnoredDuplicate;
 
         // A different signal after the redemption finished is a conflict to investigate.
@@ -94,13 +96,6 @@ public sealed class RedemptionOrder
         return result;
     }
 
-    private static int Rank(DeliveryStatus status) => status switch
-    {
-        DeliveryStatus.Pending => 1,
-        DeliveryStatus.Held => 2,
-        DeliveryStatus.OnDelivery => 3,
-        _ => 4 // Final outcomes.
-    };
 
     private static bool IsFinal(RedemptionStatus status) =>
         status is RedemptionStatus.Completed or RedemptionStatus.PartiallyCompleted
@@ -216,6 +211,7 @@ public sealed class RedemptionOrder
     {
         _history.Add(new StatusChange(Status, to, trigger, at));
         Status = to;
+        UpdatedAt = at;
         return TransitionResult.Applied;
     }
 

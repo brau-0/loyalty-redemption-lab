@@ -1,0 +1,36 @@
+@api = https://localhost:7119
+@delivery = https://localhost:7252
+
+### ===== 1. Happy path through the Function =====
+POST {{delivery}}/admin/settings
+Content-Type: application/json
+
+{ "scenario": "happy", "duplicateRate": 0, "swapRate": 0, "dropRate": 0, "stepDelayMs": 1500 }
+
+###
+# @name happy
+POST {{api}}/redemptions
+Content-Type: application/json
+
+{ "customerId": "C-100", "lines": [ { "rewardSku": "CAP-01", "quantity": 1 } ] }
+
+### Wait ~8 s: Completed. Logs of redemption-functions show "Webhook ... accepted"
+GET {{api}}/redemptions/{{happy.response.body.$.id}}
+
+### ===== 2. Lost webhooks: reconciliation recovers them =====
+POST {{delivery}}/admin/settings
+Content-Type: application/json
+
+{ "scenario": "happy", "duplicateRate": 0, "swapRate": 0, "dropRate": 0.5, "stepDelayMs": 1500 }
+
+### Create 3-4 of these. Some get stuck; within ~2-3 minutes all should be Completed
+POST {{api}}/redemptions
+Content-Type: application/json
+
+{ "customerId": "C-100", "lines": [ { "rewardSku": "CAP-01", "quantity": 1 } ] }
+
+### Restore
+POST {{delivery}}/admin/settings
+Content-Type: application/json
+
+{ "scenario": "happy", "duplicateRate": 0, "swapRate": 0, "dropRate": 0, "stepDelayMs": 1500 }

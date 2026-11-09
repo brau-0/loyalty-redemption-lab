@@ -53,9 +53,19 @@ var api = builder.AddProject<Projects.Redemption_Api>("redemption-api")
     .WithReference(customers)
     .WithReference(points);
 
-// The delivery provider posts webhooks to the API.
+// Webhook receiver and scheduled reconciliation. A host storage account (emulator) is created by default.
+var functions = builder.AddAzureFunctionsProject<Projects.Redemption_Functions>("redemption-functions")
+    .WithReference(redemptionDb).WaitFor(redemptionDb)
+    .WithReference(messaging).WaitFor(messaging)
+    .WaitFor(api); // The API applies migrations in development.
+
+// The delivery provider posts its webhooks to the Function.
 var delivery = builder.AddProject<Projects.Mocks_Delivery>("mock-delivery")
-    .WithReference(api);
+    .WithReference(functions)
+    .WithEnvironment("WebhookUrl", "https+http://redemption-functions/api/webhooks/delivery");
+
+// Reconciliation queries the delivery provider.
+functions.WithReference(delivery);
 
 builder.AddProject<Projects.Redemption_Worker>("redemption-worker")
     .WithReference(redemptionDb).WaitFor(redemptionDb)

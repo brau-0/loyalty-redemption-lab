@@ -60,9 +60,14 @@ namespace Redemption.Infrastructure.Persistence.Migrations
                     b.Property<int>("TotalPoints")
                         .HasColumnType("int");
 
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("datetimeoffset");
+
                     b.HasKey("Id");
 
                     b.HasIndex("CustomerId", "Status");
+
+                    b.HasIndex("Status", "UpdatedAt");
 
                     b.ToTable("Redemptions", (string)null);
                 });

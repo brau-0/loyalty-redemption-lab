@@ -36,7 +36,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.MapRedemptionEndpoints();
-app.MapDeliveryWebhook();
+
 if (app.Environment.IsDevelopment())
     app.MapDeliverySimulatorEndpoints();
 
