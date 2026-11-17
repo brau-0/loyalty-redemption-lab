@@ -36,8 +36,11 @@ if (app.Environment.IsDevelopment())
 }
 
 app.MapRedemptionEndpoints();
+app.MapQueryEndpoints();
 
 if (app.Environment.IsDevelopment())
     app.MapDeliverySimulatorEndpoints();
+
+
 
 app.Run();

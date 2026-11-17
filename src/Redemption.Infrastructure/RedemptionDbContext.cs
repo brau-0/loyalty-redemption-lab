@@ -10,7 +10,7 @@ public sealed class RedemptionDbContext(DbContextOptions<RedemptionDbContext> op
     public DbSet<PointsReservation> PointsReservations => Set<PointsReservation>();
     public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
     public DbSet<InboxMessage> InboxMessages => Set<InboxMessage>();
-
+    public DbSet<Reward> Rewards => Set<Reward>();
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<RedemptionOrder>(order =>
@@ -25,6 +25,7 @@ public sealed class RedemptionDbContext(DbContextOptions<RedemptionDbContext> op
             order.Property(o => o.RejectionReason).HasMaxLength(256);
             order.HasIndex(o => new { o.CustomerId, o.Status });
             order.HasIndex(o => new { o.Status, o.UpdatedAt });
+            order.HasIndex(o => new { o.CustomerId, o.CreatedAt });
             // Optimistic concurrency without leaking persistence concerns into the domain.
             order.Property<byte[]>("RowVersion").IsRowVersion();
 
@@ -71,6 +72,16 @@ public sealed class RedemptionDbContext(DbContextOptions<RedemptionDbContext> op
             inbox.HasKey(i => new { i.MessageId, i.Consumer });
             inbox.Property(i => i.MessageId).HasMaxLength(128);
             inbox.Property(i => i.Consumer).HasMaxLength(64);
+        });
+        modelBuilder.Entity<Reward>(reward =>
+        {
+            reward.ToTable("Rewards");
+            reward.HasKey(r => r.Sku);
+            reward.Property(r => r.Sku).HasMaxLength(32);
+            reward.Property(r => r.Name).HasMaxLength(128);
+            reward.Property(r => r.Category).HasMaxLength(32);
+            reward.HasIndex(r => new { r.Category, r.IsActive });
+            reward.HasData(RewardSeed.Create());
         });
     }
 

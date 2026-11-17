@@ -14,14 +14,19 @@ public static class RedemptionEndpoints
     RedemptionDbContext db, TimeProvider clock, CancellationToken ct) =>
         {
             var requested = request.Lines ?? [];
+            var skus = requested.Select(l => l.RewardSku).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
 
-            // Points per unit always come from our catalog, never from the client.
-            var unknown = requested.Where(l => !RewardCatalog.Exists(l.RewardSku)).Select(l => l.RewardSku).ToList();
+            // One query for all requested rewards (no N+1). Points always come from our catalog.
+            var rewards = await db.Rewards.AsNoTracking()
+                .Where(r => skus.Contains(r.Sku) && r.IsActive)
+                .ToDictionaryAsync(r => r.Sku, StringComparer.OrdinalIgnoreCase, ct);
+
+            var unknown = skus.Where(sku => !rewards.ContainsKey(sku)).ToList();
             if (unknown.Count > 0)
                 return Results.Problem($"Unknown rewards: {string.Join(", ", unknown)}", statusCode: StatusCodes.Status400BadRequest);
 
             var lines = requested
-                .Select(l => new RedemptionLine(l.RewardSku, l.Quantity, RewardCatalog.PointsFor(l.RewardSku)))
+                .Select(l => new RedemptionLine(rewards[l.RewardSku].Sku, l.Quantity, rewards[l.RewardSku].Points))
                 .ToList();
 
             try

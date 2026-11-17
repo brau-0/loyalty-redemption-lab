@@ -15,15 +15,7 @@ public sealed record RedemptionResponse(
 }
 
 // Temporary in-memory catalog. Lab 5 replaces it with a cached catalog service.
-public static class RewardCatalog
-{
-    private static readonly Dictionary<string, int> PointsBySku = new(StringComparer.OrdinalIgnoreCase)
-    {
-        ["CAP-01"] = 500,
-        ["BOTTLE-01"] = 1000,
-        ["COOLER-01"] = 5000
-    };
-
-    public static bool Exists(string sku) => PointsBySku.ContainsKey(sku);
-    public static int PointsFor(string sku) => PointsBySku[sku];
-}
+public sealed record RewardDto(string Sku, string Name, string Category, int Points);
+public sealed record RedemptionSummary(
+    Guid Id, RedemptionStatus Status, int TotalPoints, DateTimeOffset CreatedAt, DateTimeOffset UpdatedAt);
+public sealed record PagedResult<T>(IReadOnlyList<T> Items, int Page, int PageSize, int Total);

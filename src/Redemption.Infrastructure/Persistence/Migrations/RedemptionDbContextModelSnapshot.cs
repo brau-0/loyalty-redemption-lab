@@ -27,6 +27,9 @@ namespace Redemption.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("Id")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
                     b.Property<string>("CustomerId")
                         .IsRequired()
                         .HasMaxLength(64)
@@ -64,6 +67,8 @@ namespace Redemption.Infrastructure.Persistence.Migrations
                         .HasColumnType("datetimeoffset");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CustomerId", "CreatedAt");
 
                     b.HasIndex("CustomerId", "Status");
 
@@ -162,6 +167,1661 @@ namespace Redemption.Infrastructure.Persistence.Migrations
                     b.HasIndex("CustomerId", "State");
 
                     b.ToTable("PointsReservations", (string)null);
+                });
+
+            modelBuilder.Entity("Redemption.Infrastructure.Reward", b =>
+                {
+                    b.Property<string>("Sku")
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<int>("Points")
+                        .HasColumnType("int");
+
+                    b.HasKey("Sku");
+
+                    b.HasIndex("Category", "IsActive");
+
+                    b.ToTable("Rewards", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Sku = "CAP-01",
+                            Category = "Merch",
+                            IsActive = true,
+                            Name = "Branded cap",
+                            Points = 500
+                        },
+                        new
+                        {
+                            Sku = "BOTTLE-01",
+                            Category = "Merch",
+                            IsActive = true,
+                            Name = "Reusable bottle",
+                            Points = 1000
+                        },
+                        new
+                        {
+                            Sku = "COOLER-01",
+                            Category = "Home",
+                            IsActive = true,
+                            Name = "Portable cooler",
+                            Points = 5000
+                        },
+                        new
+                        {
+                            Sku = "RW-001",
+                            Category = "Beverages",
+                            IsActive = true,
+                            Name = "Reward 001",
+                            Points = 137
+                        },
+                        new
+                        {
+                            Sku = "RW-002",
+                            Category = "Electronics",
+                            IsActive = true,
+                            Name = "Reward 002",
+                            Points = 174
+                        },
+                        new
+                        {
+                            Sku = "RW-003",
+                            Category = "Home",
+                            IsActive = true,
+                            Name = "Reward 003",
+                            Points = 211
+                        },
+                        new
+                        {
+                            Sku = "RW-004",
+                            Category = "Vouchers",
+                            IsActive = true,
+                            Name = "Reward 004",
+                            Points = 248
+                        },
+                        new
+                        {
+                            Sku = "RW-005",
+                            Category = "Merch",
+                            IsActive = true,
+                            Name = "Reward 005",
+                            Points = 285
+                        },
+                        new
+                        {
+                            Sku = "RW-006",
+                            Category = "Beverages",
+                            IsActive = true,
+                            Name = "Reward 006",
+                            Points = 322
+                        },
+                        new
+                        {
+                            Sku = "RW-007",
+                            Category = "Electronics",
+                            IsActive = true,
+                            Name = "Reward 007",
+                            Points = 359
+                        },
+                        new
+                        {
+                            Sku = "RW-008",
+                            Category = "Home",
+                            IsActive = true,
+                            Name = "Reward 008",
+                            Points = 396
+                        },
+                        new
+                        {
+                            Sku = "RW-009",
+                            Category = "Vouchers",
+                            IsActive = true,
+                            Name = "Reward 009",
+                            Points = 433
+                        },
+                        new
+                        {
+                            Sku = "RW-010",
+                            Category = "Merch",
+                            IsActive = true,
+                            Name = "Reward 010",
+                            Points = 470
+                        },
+                        new
+                        {
+                            Sku = "RW-011",
+                            Category = "Beverages",
+                            IsActive = true,
+                            Name = "Reward 011",
+                            Points = 507
+                        },
+                        new
+                        {
+                            Sku = "RW-012",
+                            Category = "Electronics",
+                            IsActive = true,
+                            Name = "Reward 012",
+                            Points = 544
+                        },
+                        new
+                        {
+                            Sku = "RW-013",
+                            Category = "Home",
+                            IsActive = true,
+                            Name = "Reward 013",
+                            Points = 581
+                        },
+                        new
+                        {
+                            Sku = "RW-014",
+                            Category = "Vouchers",
+                            IsActive = true,
+                            Name = "Reward 014",
+                            Points = 618
+                        },
+                        new
+                        {
+                            Sku = "RW-015",
+                            Category = "Merch",
+                            IsActive = true,
+                            Name = "Reward 015",
+                            Points = 655
+                        },
+                        new
+                        {
+                            Sku = "RW-016",
+                            Category = "Beverages",
+                            IsActive = true,
+                            Name = "Reward 016",
+                            Points = 692
+                        },
+                        new
+                        {
+                            Sku = "RW-017",
+                            Category = "Electronics",
+                            IsActive = true,
+                            Name = "Reward 017",
+                            Points = 729
+                        },
+                        new
+                        {
+                            Sku = "RW-018",
+                            Category = "Home",
+                            IsActive = true,
+                            Name = "Reward 018",
+                            Points = 766
+                        },
+                        new
+                        {
+                            Sku = "RW-019",
+                            Category = "Vouchers",
+                            IsActive = true,
+                            Name = "Reward 019",
+                            Points = 803
+                        },
+                        new
+                        {
+                            Sku = "RW-020",
+                            Category = "Merch",
+                            IsActive = true,
+                            Name = "Reward 020",
+                            Points = 840
+                        },
+                        new
+                        {
+                            Sku = "RW-021",
+                            Category = "Beverages",
+                            IsActive = true,
+                            Name = "Reward 021",
+                            Points = 877
+                        },
+                        new
+                        {
+                            Sku = "RW-022",
+                            Category = "Electronics",
+                            IsActive = true,
+                            Name = "Reward 022",
+                            Points = 914
+                        },
+                        new
+                        {
+                            Sku = "RW-023",
+                            Category = "Home",
+                            IsActive = true,
+                            Name = "Reward 023",
+                            Points = 951
+                        },
+                        new
+                        {
+                            Sku = "RW-024",
+                            Category = "Vouchers",
+                            IsActive = true,
+                            Name = "Reward 024",
+                            Points = 988
+                        },
+                        new
+                        {
+                            Sku = "RW-025",
+                            Category = "Merch",
+                            IsActive = true,
+                            Name = "Reward 025",
+                            Points = 1025
+                        },
+                        new
+                        {
+                            Sku = "RW-026",
+                            Category = "Beverages",
+                            IsActive = true,
+                            Name = "Reward 026",
+                            Points = 1062
+                        },
+                        new
+                        {
+                            Sku = "RW-027",
+                            Category = "Electronics",
+                            IsActive = true,
+                            Name = "Reward 027",
+                            Points = 1099
+                        },
+                        new
+                        {
+                            Sku = "RW-028",
+                            Category = "Home",
+                            IsActive = true,
+                            Name = "Reward 028",
+                            Points = 1136
+                        },
+                        new
+                        {
+                            Sku = "RW-029",
+                            Category = "Vouchers",
+                            IsActive = true,
+                            Name = "Reward 029",
+                            Points = 1173
+                        },
+                        new
+                        {
+                            Sku = "RW-030",
+                            Category = "Merch",
+                            IsActive = true,
+                            Name = "Reward 030",
+                            Points = 1210
+                        },
+                        new
+                        {
+                            Sku = "RW-031",
+                            Category = "Beverages",
+                            IsActive = true,
+                            Name = "Reward 031",
+                            Points = 1247
+                        },
+                        new
+                        {
+                            Sku = "RW-032",
+                            Category = "Electronics",
+                            IsActive = true,
+                            Name = "Reward 032",
+                            Points = 1284
+                        },
+                        new
+                        {
+                            Sku = "RW-033",
+                            Category = "Home",
+                            IsActive = true,
+                            Name = "Reward 033",
+                            Points = 1321
+                        },
+                        new
+                        {
+                            Sku = "RW-034",
+                            Category = "Vouchers",
+                            IsActive = true,
+                            Name = "Reward 034",
+                            Points = 1358
+                        },
+                        new
+                        {
+                            Sku = "RW-035",
+                            Category = "Merch",
+                            IsActive = true,
+                            Name = "Reward 035",
+                            Points = 1395
+                        },
+                        new
+                        {
+                            Sku = "RW-036",
+                            Category = "Beverages",
+                            IsActive = true,
+                            Name = "Reward 036",
+                            Points = 1432
+                        },
+                        new
+                        {
+                            Sku = "RW-037",
+                            Category = "Electronics",
+                            IsActive = true,
+                            Name = "Reward 037",
+                            Points = 1469
+                        },
+                        new
+                        {
+                            Sku = "RW-038",
+                            Category = "Home",
+                            IsActive = true,
+                            Name = "Reward 038",
+                            Points = 1506
+                        },
+                        new
+                        {
+                            Sku = "RW-039",
+                            Category = "Vouchers",
+                            IsActive = true,
+                            Name = "Reward 039",
+                            Points = 1543
+                        },
+                        new
+                        {
+                            Sku = "RW-040",
+                            Category = "Merch",
+                            IsActive = true,
+                            Name = "Reward 040",
+                            Points = 1580
+                        },
+                        new
+                        {
+                            Sku = "RW-041",
+                            Category = "Beverages",
+                            IsActive = true,
+                            Name = "Reward 041",
+                            Points = 1617
+                        },
+                        new
+                        {
+                            Sku = "RW-042",
+                            Category = "Electronics",
+                            IsActive = true,
+                            Name = "Reward 042",
+                            Points = 1654
+                        },
+                        new
+                        {
+                            Sku = "RW-043",
+                            Category = "Home",
+                            IsActive = true,
+                            Name = "Reward 043",
+                            Points = 1691
+                        },
+                        new
+                        {
+                            Sku = "RW-044",
+                            Category = "Vouchers",
+                            IsActive = true,
+                            Name = "Reward 044",
+                            Points = 1728
+                        },
+                        new
+                        {
+                            Sku = "RW-045",
+                            Category = "Merch",
+                            IsActive = true,
+                            Name = "Reward 045",
+                            Points = 1765
+                        },
+                        new
+                        {
+                            Sku = "RW-046",
+                            Category = "Beverages",
+                            IsActive = true,
+                            Name = "Reward 046",
+                            Points = 1802
+                        },
+                        new
+                        {
+                            Sku = "RW-047",
+                            Category = "Electronics",
+                            IsActive = true,
+                            Name = "Reward 047",
+                            Points = 1839
+                        },
+                        new
+                        {
+                            Sku = "RW-048",
+                            Category = "Home",
+                            IsActive = true,
+                            Name = "Reward 048",
+                            Points = 1876
+                        },
+                        new
+                        {
+                            Sku = "RW-049",
+                            Category = "Vouchers",
+                            IsActive = true,
+                            Name = "Reward 049",
+                            Points = 1913
+                        },
+                        new
+                        {
+                            Sku = "RW-050",
+                            Category = "Merch",
+                            IsActive = true,
+                            Name = "Reward 050",
+                            Points = 1950
+                        },
+                        new
+                        {
+                            Sku = "RW-051",
+                            Category = "Beverages",
+                            IsActive = true,
+                            Name = "Reward 051",
+                            Points = 1987
+                        },
+                        new
+                        {
+                            Sku = "RW-052",
+                            Category = "Electronics",
+                            IsActive = true,
+                            Name = "Reward 052",
+                            Points = 2024
+                        },
+                        new
+                        {
+                            Sku = "RW-053",
+                            Category = "Home",
+                            IsActive = true,
+                            Name = "Reward 053",
+                            Points = 2061
+                        },
+                        new
+                        {
+                            Sku = "RW-054",
+                            Category = "Vouchers",
+                            IsActive = true,
+                            Name = "Reward 054",
+                            Points = 2098
+                        },
+                        new
+                        {
+                            Sku = "RW-055",
+                            Category = "Merch",
+                            IsActive = true,
+                            Name = "Reward 055",
+                            Points = 2135
+                        },
+                        new
+                        {
+                            Sku = "RW-056",
+                            Category = "Beverages",
+                            IsActive = true,
+                            Name = "Reward 056",
+                            Points = 2172
+                        },
+                        new
+                        {
+                            Sku = "RW-057",
+                            Category = "Electronics",
+                            IsActive = true,
+                            Name = "Reward 057",
+                            Points = 2209
+                        },
+                        new
+                        {
+                            Sku = "RW-058",
+                            Category = "Home",
+                            IsActive = true,
+                            Name = "Reward 058",
+                            Points = 2246
+                        },
+                        new
+                        {
+                            Sku = "RW-059",
+                            Category = "Vouchers",
+                            IsActive = true,
+                            Name = "Reward 059",
+                            Points = 2283
+                        },
+                        new
+                        {
+                            Sku = "RW-060",
+                            Category = "Merch",
+                            IsActive = true,
+                            Name = "Reward 060",
+                            Points = 2320
+                        },
+                        new
+                        {
+                            Sku = "RW-061",
+                            Category = "Beverages",
+                            IsActive = true,
+                            Name = "Reward 061",
+                            Points = 2357
+                        },
+                        new
+                        {
+                            Sku = "RW-062",
+                            Category = "Electronics",
+                            IsActive = true,
+                            Name = "Reward 062",
+                            Points = 2394
+                        },
+                        new
+                        {
+                            Sku = "RW-063",
+                            Category = "Home",
+                            IsActive = true,
+                            Name = "Reward 063",
+                            Points = 2431
+                        },
+                        new
+                        {
+                            Sku = "RW-064",
+                            Category = "Vouchers",
+                            IsActive = true,
+                            Name = "Reward 064",
+                            Points = 2468
+                        },
+                        new
+                        {
+                            Sku = "RW-065",
+                            Category = "Merch",
+                            IsActive = true,
+                            Name = "Reward 065",
+                            Points = 2505
+                        },
+                        new
+                        {
+                            Sku = "RW-066",
+                            Category = "Beverages",
+                            IsActive = true,
+                            Name = "Reward 066",
+                            Points = 2542
+                        },
+                        new
+                        {
+                            Sku = "RW-067",
+                            Category = "Electronics",
+                            IsActive = true,
+                            Name = "Reward 067",
+                            Points = 2579
+                        },
+                        new
+                        {
+                            Sku = "RW-068",
+                            Category = "Home",
+                            IsActive = true,
+                            Name = "Reward 068",
+                            Points = 2616
+                        },
+                        new
+                        {
+                            Sku = "RW-069",
+                            Category = "Vouchers",
+                            IsActive = true,
+                            Name = "Reward 069",
+                            Points = 2653
+                        },
+                        new
+                        {
+                            Sku = "RW-070",
+                            Category = "Merch",
+                            IsActive = true,
+                            Name = "Reward 070",
+                            Points = 2690
+                        },
+                        new
+                        {
+                            Sku = "RW-071",
+                            Category = "Beverages",
+                            IsActive = true,
+                            Name = "Reward 071",
+                            Points = 2727
+                        },
+                        new
+                        {
+                            Sku = "RW-072",
+                            Category = "Electronics",
+                            IsActive = true,
+                            Name = "Reward 072",
+                            Points = 2764
+                        },
+                        new
+                        {
+                            Sku = "RW-073",
+                            Category = "Home",
+                            IsActive = true,
+                            Name = "Reward 073",
+                            Points = 2801
+                        },
+                        new
+                        {
+                            Sku = "RW-074",
+                            Category = "Vouchers",
+                            IsActive = true,
+                            Name = "Reward 074",
+                            Points = 2838
+                        },
+                        new
+                        {
+                            Sku = "RW-075",
+                            Category = "Merch",
+                            IsActive = true,
+                            Name = "Reward 075",
+                            Points = 2875
+                        },
+                        new
+                        {
+                            Sku = "RW-076",
+                            Category = "Beverages",
+                            IsActive = true,
+                            Name = "Reward 076",
+                            Points = 2912
+                        },
+                        new
+                        {
+                            Sku = "RW-077",
+                            Category = "Electronics",
+                            IsActive = true,
+                            Name = "Reward 077",
+                            Points = 2949
+                        },
+                        new
+                        {
+                            Sku = "RW-078",
+                            Category = "Home",
+                            IsActive = true,
+                            Name = "Reward 078",
+                            Points = 2986
+                        },
+                        new
+                        {
+                            Sku = "RW-079",
+                            Category = "Vouchers",
+                            IsActive = true,
+                            Name = "Reward 079",
+                            Points = 3023
+                        },
+                        new
+                        {
+                            Sku = "RW-080",
+                            Category = "Merch",
+                            IsActive = true,
+                            Name = "Reward 080",
+                            Points = 3060
+                        },
+                        new
+                        {
+                            Sku = "RW-081",
+                            Category = "Beverages",
+                            IsActive = true,
+                            Name = "Reward 081",
+                            Points = 3097
+                        },
+                        new
+                        {
+                            Sku = "RW-082",
+                            Category = "Electronics",
+                            IsActive = true,
+                            Name = "Reward 082",
+                            Points = 3134
+                        },
+                        new
+                        {
+                            Sku = "RW-083",
+                            Category = "Home",
+                            IsActive = true,
+                            Name = "Reward 083",
+                            Points = 3171
+                        },
+                        new
+                        {
+                            Sku = "RW-084",
+                            Category = "Vouchers",
+                            IsActive = true,
+                            Name = "Reward 084",
+                            Points = 3208
+                        },
+                        new
+                        {
+                            Sku = "RW-085",
+                            Category = "Merch",
+                            IsActive = true,
+                            Name = "Reward 085",
+                            Points = 3245
+                        },
+                        new
+                        {
+                            Sku = "RW-086",
+                            Category = "Beverages",
+                            IsActive = true,
+                            Name = "Reward 086",
+                            Points = 3282
+                        },
+                        new
+                        {
+                            Sku = "RW-087",
+                            Category = "Electronics",
+                            IsActive = true,
+                            Name = "Reward 087",
+                            Points = 3319
+                        },
+                        new
+                        {
+                            Sku = "RW-088",
+                            Category = "Home",
+                            IsActive = true,
+                            Name = "Reward 088",
+                            Points = 3356
+                        },
+                        new
+                        {
+                            Sku = "RW-089",
+                            Category = "Vouchers",
+                            IsActive = true,
+                            Name = "Reward 089",
+                            Points = 3393
+                        },
+                        new
+                        {
+                            Sku = "RW-090",
+                            Category = "Merch",
+                            IsActive = true,
+                            Name = "Reward 090",
+                            Points = 3430
+                        },
+                        new
+                        {
+                            Sku = "RW-091",
+                            Category = "Beverages",
+                            IsActive = true,
+                            Name = "Reward 091",
+                            Points = 3467
+                        },
+                        new
+                        {
+                            Sku = "RW-092",
+                            Category = "Electronics",
+                            IsActive = true,
+                            Name = "Reward 092",
+                            Points = 3504
+                        },
+                        new
+                        {
+                            Sku = "RW-093",
+                            Category = "Home",
+                            IsActive = true,
+                            Name = "Reward 093",
+                            Points = 3541
+                        },
+                        new
+                        {
+                            Sku = "RW-094",
+                            Category = "Vouchers",
+                            IsActive = true,
+                            Name = "Reward 094",
+                            Points = 3578
+                        },
+                        new
+                        {
+                            Sku = "RW-095",
+                            Category = "Merch",
+                            IsActive = true,
+                            Name = "Reward 095",
+                            Points = 3615
+                        },
+                        new
+                        {
+                            Sku = "RW-096",
+                            Category = "Beverages",
+                            IsActive = true,
+                            Name = "Reward 096",
+                            Points = 3652
+                        },
+                        new
+                        {
+                            Sku = "RW-097",
+                            Category = "Electronics",
+                            IsActive = true,
+                            Name = "Reward 097",
+                            Points = 3689
+                        },
+                        new
+                        {
+                            Sku = "RW-098",
+                            Category = "Home",
+                            IsActive = true,
+                            Name = "Reward 098",
+                            Points = 3726
+                        },
+                        new
+                        {
+                            Sku = "RW-099",
+                            Category = "Vouchers",
+                            IsActive = true,
+                            Name = "Reward 099",
+                            Points = 3763
+                        },
+                        new
+                        {
+                            Sku = "RW-100",
+                            Category = "Merch",
+                            IsActive = true,
+                            Name = "Reward 100",
+                            Points = 3800
+                        },
+                        new
+                        {
+                            Sku = "RW-101",
+                            Category = "Beverages",
+                            IsActive = true,
+                            Name = "Reward 101",
+                            Points = 3837
+                        },
+                        new
+                        {
+                            Sku = "RW-102",
+                            Category = "Electronics",
+                            IsActive = true,
+                            Name = "Reward 102",
+                            Points = 3874
+                        },
+                        new
+                        {
+                            Sku = "RW-103",
+                            Category = "Home",
+                            IsActive = true,
+                            Name = "Reward 103",
+                            Points = 3911
+                        },
+                        new
+                        {
+                            Sku = "RW-104",
+                            Category = "Vouchers",
+                            IsActive = true,
+                            Name = "Reward 104",
+                            Points = 3948
+                        },
+                        new
+                        {
+                            Sku = "RW-105",
+                            Category = "Merch",
+                            IsActive = true,
+                            Name = "Reward 105",
+                            Points = 3985
+                        },
+                        new
+                        {
+                            Sku = "RW-106",
+                            Category = "Beverages",
+                            IsActive = true,
+                            Name = "Reward 106",
+                            Points = 4022
+                        },
+                        new
+                        {
+                            Sku = "RW-107",
+                            Category = "Electronics",
+                            IsActive = true,
+                            Name = "Reward 107",
+                            Points = 4059
+                        },
+                        new
+                        {
+                            Sku = "RW-108",
+                            Category = "Home",
+                            IsActive = true,
+                            Name = "Reward 108",
+                            Points = 4096
+                        },
+                        new
+                        {
+                            Sku = "RW-109",
+                            Category = "Vouchers",
+                            IsActive = true,
+                            Name = "Reward 109",
+                            Points = 4133
+                        },
+                        new
+                        {
+                            Sku = "RW-110",
+                            Category = "Merch",
+                            IsActive = true,
+                            Name = "Reward 110",
+                            Points = 4170
+                        },
+                        new
+                        {
+                            Sku = "RW-111",
+                            Category = "Beverages",
+                            IsActive = true,
+                            Name = "Reward 111",
+                            Points = 4207
+                        },
+                        new
+                        {
+                            Sku = "RW-112",
+                            Category = "Electronics",
+                            IsActive = true,
+                            Name = "Reward 112",
+                            Points = 4244
+                        },
+                        new
+                        {
+                            Sku = "RW-113",
+                            Category = "Home",
+                            IsActive = true,
+                            Name = "Reward 113",
+                            Points = 4281
+                        },
+                        new
+                        {
+                            Sku = "RW-114",
+                            Category = "Vouchers",
+                            IsActive = true,
+                            Name = "Reward 114",
+                            Points = 4318
+                        },
+                        new
+                        {
+                            Sku = "RW-115",
+                            Category = "Merch",
+                            IsActive = true,
+                            Name = "Reward 115",
+                            Points = 4355
+                        },
+                        new
+                        {
+                            Sku = "RW-116",
+                            Category = "Beverages",
+                            IsActive = true,
+                            Name = "Reward 116",
+                            Points = 4392
+                        },
+                        new
+                        {
+                            Sku = "RW-117",
+                            Category = "Electronics",
+                            IsActive = true,
+                            Name = "Reward 117",
+                            Points = 4429
+                        },
+                        new
+                        {
+                            Sku = "RW-118",
+                            Category = "Home",
+                            IsActive = true,
+                            Name = "Reward 118",
+                            Points = 4466
+                        },
+                        new
+                        {
+                            Sku = "RW-119",
+                            Category = "Vouchers",
+                            IsActive = true,
+                            Name = "Reward 119",
+                            Points = 4503
+                        },
+                        new
+                        {
+                            Sku = "RW-120",
+                            Category = "Merch",
+                            IsActive = true,
+                            Name = "Reward 120",
+                            Points = 4540
+                        },
+                        new
+                        {
+                            Sku = "RW-121",
+                            Category = "Beverages",
+                            IsActive = true,
+                            Name = "Reward 121",
+                            Points = 4577
+                        },
+                        new
+                        {
+                            Sku = "RW-122",
+                            Category = "Electronics",
+                            IsActive = true,
+                            Name = "Reward 122",
+                            Points = 4614
+                        },
+                        new
+                        {
+                            Sku = "RW-123",
+                            Category = "Home",
+                            IsActive = true,
+                            Name = "Reward 123",
+                            Points = 4651
+                        },
+                        new
+                        {
+                            Sku = "RW-124",
+                            Category = "Vouchers",
+                            IsActive = true,
+                            Name = "Reward 124",
+                            Points = 4688
+                        },
+                        new
+                        {
+                            Sku = "RW-125",
+                            Category = "Merch",
+                            IsActive = true,
+                            Name = "Reward 125",
+                            Points = 4725
+                        },
+                        new
+                        {
+                            Sku = "RW-126",
+                            Category = "Beverages",
+                            IsActive = true,
+                            Name = "Reward 126",
+                            Points = 4762
+                        },
+                        new
+                        {
+                            Sku = "RW-127",
+                            Category = "Electronics",
+                            IsActive = true,
+                            Name = "Reward 127",
+                            Points = 4799
+                        },
+                        new
+                        {
+                            Sku = "RW-128",
+                            Category = "Home",
+                            IsActive = true,
+                            Name = "Reward 128",
+                            Points = 4836
+                        },
+                        new
+                        {
+                            Sku = "RW-129",
+                            Category = "Vouchers",
+                            IsActive = true,
+                            Name = "Reward 129",
+                            Points = 4873
+                        },
+                        new
+                        {
+                            Sku = "RW-130",
+                            Category = "Merch",
+                            IsActive = true,
+                            Name = "Reward 130",
+                            Points = 4910
+                        },
+                        new
+                        {
+                            Sku = "RW-131",
+                            Category = "Beverages",
+                            IsActive = true,
+                            Name = "Reward 131",
+                            Points = 4947
+                        },
+                        new
+                        {
+                            Sku = "RW-132",
+                            Category = "Electronics",
+                            IsActive = true,
+                            Name = "Reward 132",
+                            Points = 4984
+                        },
+                        new
+                        {
+                            Sku = "RW-133",
+                            Category = "Home",
+                            IsActive = true,
+                            Name = "Reward 133",
+                            Points = 121
+                        },
+                        new
+                        {
+                            Sku = "RW-134",
+                            Category = "Vouchers",
+                            IsActive = true,
+                            Name = "Reward 134",
+                            Points = 158
+                        },
+                        new
+                        {
+                            Sku = "RW-135",
+                            Category = "Merch",
+                            IsActive = true,
+                            Name = "Reward 135",
+                            Points = 195
+                        },
+                        new
+                        {
+                            Sku = "RW-136",
+                            Category = "Beverages",
+                            IsActive = true,
+                            Name = "Reward 136",
+                            Points = 232
+                        },
+                        new
+                        {
+                            Sku = "RW-137",
+                            Category = "Electronics",
+                            IsActive = true,
+                            Name = "Reward 137",
+                            Points = 269
+                        },
+                        new
+                        {
+                            Sku = "RW-138",
+                            Category = "Home",
+                            IsActive = true,
+                            Name = "Reward 138",
+                            Points = 306
+                        },
+                        new
+                        {
+                            Sku = "RW-139",
+                            Category = "Vouchers",
+                            IsActive = true,
+                            Name = "Reward 139",
+                            Points = 343
+                        },
+                        new
+                        {
+                            Sku = "RW-140",
+                            Category = "Merch",
+                            IsActive = true,
+                            Name = "Reward 140",
+                            Points = 380
+                        },
+                        new
+                        {
+                            Sku = "RW-141",
+                            Category = "Beverages",
+                            IsActive = true,
+                            Name = "Reward 141",
+                            Points = 417
+                        },
+                        new
+                        {
+                            Sku = "RW-142",
+                            Category = "Electronics",
+                            IsActive = true,
+                            Name = "Reward 142",
+                            Points = 454
+                        },
+                        new
+                        {
+                            Sku = "RW-143",
+                            Category = "Home",
+                            IsActive = true,
+                            Name = "Reward 143",
+                            Points = 491
+                        },
+                        new
+                        {
+                            Sku = "RW-144",
+                            Category = "Vouchers",
+                            IsActive = true,
+                            Name = "Reward 144",
+                            Points = 528
+                        },
+                        new
+                        {
+                            Sku = "RW-145",
+                            Category = "Merch",
+                            IsActive = true,
+                            Name = "Reward 145",
+                            Points = 565
+                        },
+                        new
+                        {
+                            Sku = "RW-146",
+                            Category = "Beverages",
+                            IsActive = true,
+                            Name = "Reward 146",
+                            Points = 602
+                        },
+                        new
+                        {
+                            Sku = "RW-147",
+                            Category = "Electronics",
+                            IsActive = true,
+                            Name = "Reward 147",
+                            Points = 639
+                        },
+                        new
+                        {
+                            Sku = "RW-148",
+                            Category = "Home",
+                            IsActive = true,
+                            Name = "Reward 148",
+                            Points = 676
+                        },
+                        new
+                        {
+                            Sku = "RW-149",
+                            Category = "Vouchers",
+                            IsActive = true,
+                            Name = "Reward 149",
+                            Points = 713
+                        },
+                        new
+                        {
+                            Sku = "RW-150",
+                            Category = "Merch",
+                            IsActive = true,
+                            Name = "Reward 150",
+                            Points = 750
+                        },
+                        new
+                        {
+                            Sku = "RW-151",
+                            Category = "Beverages",
+                            IsActive = true,
+                            Name = "Reward 151",
+                            Points = 787
+                        },
+                        new
+                        {
+                            Sku = "RW-152",
+                            Category = "Electronics",
+                            IsActive = true,
+                            Name = "Reward 152",
+                            Points = 824
+                        },
+                        new
+                        {
+                            Sku = "RW-153",
+                            Category = "Home",
+                            IsActive = true,
+                            Name = "Reward 153",
+                            Points = 861
+                        },
+                        new
+                        {
+                            Sku = "RW-154",
+                            Category = "Vouchers",
+                            IsActive = true,
+                            Name = "Reward 154",
+                            Points = 898
+                        },
+                        new
+                        {
+                            Sku = "RW-155",
+                            Category = "Merch",
+                            IsActive = true,
+                            Name = "Reward 155",
+                            Points = 935
+                        },
+                        new
+                        {
+                            Sku = "RW-156",
+                            Category = "Beverages",
+                            IsActive = true,
+                            Name = "Reward 156",
+                            Points = 972
+                        },
+                        new
+                        {
+                            Sku = "RW-157",
+                            Category = "Electronics",
+                            IsActive = true,
+                            Name = "Reward 157",
+                            Points = 1009
+                        },
+                        new
+                        {
+                            Sku = "RW-158",
+                            Category = "Home",
+                            IsActive = true,
+                            Name = "Reward 158",
+                            Points = 1046
+                        },
+                        new
+                        {
+                            Sku = "RW-159",
+                            Category = "Vouchers",
+                            IsActive = true,
+                            Name = "Reward 159",
+                            Points = 1083
+                        },
+                        new
+                        {
+                            Sku = "RW-160",
+                            Category = "Merch",
+                            IsActive = true,
+                            Name = "Reward 160",
+                            Points = 1120
+                        },
+                        new
+                        {
+                            Sku = "RW-161",
+                            Category = "Beverages",
+                            IsActive = true,
+                            Name = "Reward 161",
+                            Points = 1157
+                        },
+                        new
+                        {
+                            Sku = "RW-162",
+                            Category = "Electronics",
+                            IsActive = true,
+                            Name = "Reward 162",
+                            Points = 1194
+                        },
+                        new
+                        {
+                            Sku = "RW-163",
+                            Category = "Home",
+                            IsActive = true,
+                            Name = "Reward 163",
+                            Points = 1231
+                        },
+                        new
+                        {
+                            Sku = "RW-164",
+                            Category = "Vouchers",
+                            IsActive = true,
+                            Name = "Reward 164",
+                            Points = 1268
+                        },
+                        new
+                        {
+                            Sku = "RW-165",
+                            Category = "Merch",
+                            IsActive = true,
+                            Name = "Reward 165",
+                            Points = 1305
+                        },
+                        new
+                        {
+                            Sku = "RW-166",
+                            Category = "Beverages",
+                            IsActive = true,
+                            Name = "Reward 166",
+                            Points = 1342
+                        },
+                        new
+                        {
+                            Sku = "RW-167",
+                            Category = "Electronics",
+                            IsActive = true,
+                            Name = "Reward 167",
+                            Points = 1379
+                        },
+                        new
+                        {
+                            Sku = "RW-168",
+                            Category = "Home",
+                            IsActive = true,
+                            Name = "Reward 168",
+                            Points = 1416
+                        },
+                        new
+                        {
+                            Sku = "RW-169",
+                            Category = "Vouchers",
+                            IsActive = true,
+                            Name = "Reward 169",
+                            Points = 1453
+                        },
+                        new
+                        {
+                            Sku = "RW-170",
+                            Category = "Merch",
+                            IsActive = true,
+                            Name = "Reward 170",
+                            Points = 1490
+                        },
+                        new
+                        {
+                            Sku = "RW-171",
+                            Category = "Beverages",
+                            IsActive = true,
+                            Name = "Reward 171",
+                            Points = 1527
+                        },
+                        new
+                        {
+                            Sku = "RW-172",
+                            Category = "Electronics",
+                            IsActive = true,
+                            Name = "Reward 172",
+                            Points = 1564
+                        },
+                        new
+                        {
+                            Sku = "RW-173",
+                            Category = "Home",
+                            IsActive = true,
+                            Name = "Reward 173",
+                            Points = 1601
+                        },
+                        new
+                        {
+                            Sku = "RW-174",
+                            Category = "Vouchers",
+                            IsActive = true,
+                            Name = "Reward 174",
+                            Points = 1638
+                        },
+                        new
+                        {
+                            Sku = "RW-175",
+                            Category = "Merch",
+                            IsActive = true,
+                            Name = "Reward 175",
+                            Points = 1675
+                        },
+                        new
+                        {
+                            Sku = "RW-176",
+                            Category = "Beverages",
+                            IsActive = true,
+                            Name = "Reward 176",
+                            Points = 1712
+                        },
+                        new
+                        {
+                            Sku = "RW-177",
+                            Category = "Electronics",
+                            IsActive = true,
+                            Name = "Reward 177",
+                            Points = 1749
+                        },
+                        new
+                        {
+                            Sku = "RW-178",
+                            Category = "Home",
+                            IsActive = true,
+                            Name = "Reward 178",
+                            Points = 1786
+                        },
+                        new
+                        {
+                            Sku = "RW-179",
+                            Category = "Vouchers",
+                            IsActive = true,
+                            Name = "Reward 179",
+                            Points = 1823
+                        },
+                        new
+                        {
+                            Sku = "RW-180",
+                            Category = "Merch",
+                            IsActive = true,
+                            Name = "Reward 180",
+                            Points = 1860
+                        },
+                        new
+                        {
+                            Sku = "RW-181",
+                            Category = "Beverages",
+                            IsActive = true,
+                            Name = "Reward 181",
+                            Points = 1897
+                        },
+                        new
+                        {
+                            Sku = "RW-182",
+                            Category = "Electronics",
+                            IsActive = true,
+                            Name = "Reward 182",
+                            Points = 1934
+                        },
+                        new
+                        {
+                            Sku = "RW-183",
+                            Category = "Home",
+                            IsActive = true,
+                            Name = "Reward 183",
+                            Points = 1971
+                        },
+                        new
+                        {
+                            Sku = "RW-184",
+                            Category = "Vouchers",
+                            IsActive = true,
+                            Name = "Reward 184",
+                            Points = 2008
+                        },
+                        new
+                        {
+                            Sku = "RW-185",
+                            Category = "Merch",
+                            IsActive = true,
+                            Name = "Reward 185",
+                            Points = 2045
+                        },
+                        new
+                        {
+                            Sku = "RW-186",
+                            Category = "Beverages",
+                            IsActive = true,
+                            Name = "Reward 186",
+                            Points = 2082
+                        },
+                        new
+                        {
+                            Sku = "RW-187",
+                            Category = "Electronics",
+                            IsActive = true,
+                            Name = "Reward 187",
+                            Points = 2119
+                        },
+                        new
+                        {
+                            Sku = "RW-188",
+                            Category = "Home",
+                            IsActive = true,
+                            Name = "Reward 188",
+                            Points = 2156
+                        },
+                        new
+                        {
+                            Sku = "RW-189",
+                            Category = "Vouchers",
+                            IsActive = true,
+                            Name = "Reward 189",
+                            Points = 2193
+                        },
+                        new
+                        {
+                            Sku = "RW-190",
+                            Category = "Merch",
+                            IsActive = true,
+                            Name = "Reward 190",
+                            Points = 2230
+                        },
+                        new
+                        {
+                            Sku = "RW-191",
+                            Category = "Beverages",
+                            IsActive = true,
+                            Name = "Reward 191",
+                            Points = 2267
+                        },
+                        new
+                        {
+                            Sku = "RW-192",
+                            Category = "Electronics",
+                            IsActive = true,
+                            Name = "Reward 192",
+                            Points = 2304
+                        },
+                        new
+                        {
+                            Sku = "RW-193",
+                            Category = "Home",
+                            IsActive = true,
+                            Name = "Reward 193",
+                            Points = 2341
+                        },
+                        new
+                        {
+                            Sku = "RW-194",
+                            Category = "Vouchers",
+                            IsActive = true,
+                            Name = "Reward 194",
+                            Points = 2378
+                        },
+                        new
+                        {
+                            Sku = "RW-195",
+                            Category = "Merch",
+                            IsActive = true,
+                            Name = "Reward 195",
+                            Points = 2415
+                        },
+                        new
+                        {
+                            Sku = "RW-196",
+                            Category = "Beverages",
+                            IsActive = true,
+                            Name = "Reward 196",
+                            Points = 2452
+                        },
+                        new
+                        {
+                            Sku = "RW-197",
+                            Category = "Electronics",
+                            IsActive = true,
+                            Name = "Reward 197",
+                            Points = 2489
+                        },
+                        new
+                        {
+                            Sku = "RW-198",
+                            Category = "Home",
+                            IsActive = true,
+                            Name = "Reward 198",
+                            Points = 2526
+                        },
+                        new
+                        {
+                            Sku = "RW-199",
+                            Category = "Vouchers",
+                            IsActive = true,
+                            Name = "Reward 199",
+                            Points = 2563
+                        },
+                        new
+                        {
+                            Sku = "RW-200",
+                            Category = "Merch",
+                            IsActive = true,
+                            Name = "Reward 200",
+                            Points = 2600
+                        });
                 });
 
             modelBuilder.Entity("Redemption.Domain.RedemptionOrder", b =>

@@ -1,0 +1,20 @@
+@api = https://localhost:7119
+
+### Seed 2000 finished redemptions for C-100
+POST {{api}}/dev/seed-redemptions?customerId=C-100&count=2000
+
+### Catalog: Merch, page 1
+GET {{api}}/rewards?category=Merch&page=1&pageSize=10
+
+### Catalog: search
+GET {{api}}/rewards?search=Reward&pageSize=10
+
+### Redemptions, first page
+# @name first
+GET {{api}}/customers/C-100/redemptions?limit=5
+
+### Next page with the cursor
+GET {{api}}/customers/C-100/redemptions?limit=5&cursor={{first.response.body.$.nextCursor}}
+
+### Only cancelled
+GET {{api}}/customers/C-100/redemptions?status=Cancelled&limit=5

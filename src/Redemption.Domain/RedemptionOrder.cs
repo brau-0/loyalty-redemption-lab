@@ -23,6 +23,7 @@ public sealed class RedemptionOrder
     public IReadOnlyList<StatusChange> History => _history;
     public IReadOnlyList<IDomainEvent> DomainEvents => _events;
     public DateTimeOffset UpdatedAt { get; private set; }
+    public DateTimeOffset CreatedAt { get; private set; }
 
     private RedemptionOrder() { } // Required by EF Core.
 

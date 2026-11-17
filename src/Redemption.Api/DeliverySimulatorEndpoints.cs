@@ -1,4 +1,6 @@
 ﻿using Azure.Messaging.ServiceBus;
+using Redemption.Domain;
+using Redemption.Infrastructure;
 using Redemption.Infrastructure.Messaging;
 
 namespace Redemption.Api;
@@ -35,6 +37,45 @@ public static class DeliverySimulatorEndpoints
                 m.DeadLetterErrorDescription,
                 Body = m.Body.ToString()
             }));
+        });
+
+        // Bulk-creates finished redemptions for load testing. Events are cleared before saving,
+        // so no outbox messages, shipments or reservations are produced.
+        app.MapPost("/dev/seed-redemptions", async (
+            string customerId, int count, RedemptionDbContext db, TimeProvider clock, CancellationToken ct) =>
+        {
+            var start = clock.GetUtcNow().AddDays(-30);
+            for (var i = 0; i < count; i++)
+            {
+                var at = start.AddMinutes(i * 10);
+                var order = RedemptionOrder.Create(Guid.CreateVersion7(), customerId,
+                    [new RedemptionLine("CAP-01", 1 + i % 3, 500)], at);
+
+                order.ApplyDeliveryStatus(DeliveryStatus.Pending, at);
+                if (i % 5 == 0)
+                {
+                    order.ApplyDeliveryStatus(DeliveryStatus.NotCompleted, at);   // ~20% cancelled
+                }
+                else
+                {
+                    order.ApplyDeliveryStatus(DeliveryStatus.Held, at);
+                    order.ConfirmPointsCommitted(at);
+                    order.ApplyDeliveryStatus(DeliveryStatus.OnDelivery, at);
+                    order.ApplyDeliveryStatus(DeliveryStatus.Completed, at);
+                }
+
+                order.ClearDomainEvents();
+                db.Redemptions.Add(order);
+
+                if (i % 500 == 499)
+                {
+                    await db.SaveChangesAsync(ct);
+                    db.ChangeTracker.Clear();
+                }
+            }
+
+            await db.SaveChangesAsync(ct);
+            return Results.Ok(new { customerId, created = count });
         });
 
 
